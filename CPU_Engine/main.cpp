@@ -14,18 +14,34 @@ int main()
 
     constexpr std::uint32_t BLACK = 0xFF000000;
     constexpr std::uint32_t RED = 0xFFFF0000;
+    constexpr std::uint32_t GREEN = 0xFF00FF00;
+    constexpr std::uint32_t BLUE = 0xFF0000FF;
 
     framebuffer.clear(BLACK);
 
-    // Notre moteur CPU dessine un carre rouge de 11 x 11 pixels.
-    // Cela permet de reperer facilement le pixel central a l'ecran.
-    for (int y = 295; y <= 305; ++y)
-    {
-        for (int x = 395; x <= 405; ++x)
-        {
-            framebuffer.putPixel(x, y, RED);
-        }
-    }
+
+
+    framebuffer.drawTriangle(
+        100, 100,
+        350, 100,
+        225, 350,
+        RED
+    );
+
+    framebuffer.drawTriangle(
+        400, 100,
+        700, 200,
+        500, 450,
+        GREEN
+    );
+
+    framebuffer.drawTriangle(
+        100, 400,
+        250, 500,
+        350, 400,
+        BLUE
+    );
+
 
     std::cout << "Framebuffer : "
         << framebuffer.getWidth() << " x "
