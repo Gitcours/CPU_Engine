@@ -17,29 +17,11 @@ int main()
     constexpr std::uint32_t GREEN = 0xFF00FF00;
     constexpr std::uint32_t BLUE = 0xFF0000FF;
 
-    framebuffer.clear(BLACK);
-
-
-
-    framebuffer.drawTriangle(
-        100, 100,
-        350, 100,
-        225, 350,
-        RED
-    );
-
-    framebuffer.drawTriangle(
-        400, 100,
-        700, 200,
-        500, 450,
-        GREEN
-    );
-
-    framebuffer.drawTriangle(
-        100, 400,
-        250, 500,
-        350, 400,
-        BLUE
+    framebuffer.clear(0xFF000000);
+    framebuffer.drawTriangleGradient(
+        150, 100, RED,
+        550, 150, GREEN,
+        300, 450, BLUE
     );
 
 
