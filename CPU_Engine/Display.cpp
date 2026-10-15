@@ -1,4 +1,3 @@
-
 #include "Display.hpp"
 
 #include <iostream>
