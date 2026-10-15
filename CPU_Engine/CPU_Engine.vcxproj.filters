@@ -13,10 +13,30 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Fichiers d%27en-tête\Framebuffer">
+      <UniqueIdentifier>{c10c6b6b-c1ad-46c2-88ed-39aa452c193a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Framebuffer">
+      <UniqueIdentifier>{bbe4f5c1-990c-4e5c-b927-ea8816d4220e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
+    <ClCompile Include="Framebuffer.cpp">
+      <Filter>Fichiers sources\Framebuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Display.cpp">
+      <Filter>Fichiers sources\Framebuffer</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Framebuffer.hpp">
+      <Filter>Fichiers d%27en-tête\Framebuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Display.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
