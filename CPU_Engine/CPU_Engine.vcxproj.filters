@@ -13,30 +13,42 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Fichiers d%27en-tête\Framebuffer">
-      <UniqueIdentifier>{c10c6b6b-c1ad-46c2-88ed-39aa452c193a}</UniqueIdentifier>
+    <Filter Include="Fichiers sources\Rendering">
+      <UniqueIdentifier>{dc824255-a45b-4cc1-8ade-aa553bcffc7f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Fichiers sources\Framebuffer">
-      <UniqueIdentifier>{bbe4f5c1-990c-4e5c-b927-ea8816d4220e}</UniqueIdentifier>
+    <Filter Include="Fichiers d%27en-tête\Rendering">
+      <UniqueIdentifier>{c0427056-c645-491a-b45d-b0ac1c519b9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers d%27en-tête\Math">
+      <UniqueIdentifier>{91131431-05ab-4ad2-bd7a-a8915818c4a1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="Framebuffer.cpp">
-      <Filter>Fichiers sources\Framebuffer</Filter>
-    </ClCompile>
     <ClCompile Include="Display.cpp">
-      <Filter>Fichiers sources\Framebuffer</Filter>
+      <Filter>Fichiers sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Framebuffer.cpp">
+      <Filter>Fichiers sources\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Framebuffer.hpp">
-      <Filter>Fichiers d%27en-tête\Framebuffer</Filter>
+      <Filter>Fichiers d%27en-tête\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Display.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
+      <Filter>Fichiers d%27en-tête\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Vec3.h">
+      <Filter>Fichiers d%27en-tête\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Vec4.h">
+      <Filter>Fichiers d%27en-tête\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Mat4x4.h">
+      <Filter>Fichiers d%27en-tête\Math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
