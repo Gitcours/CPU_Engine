@@ -426,3 +426,40 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+
+# ==============================
+# CLion / JetBrains
+# ==============================
+.idea/
+cmake-build-*/
+CMakeUserPresets.json
+
+# ==============================
+# CMake - fichiers générés
+# ==============================
+build/
+cmake-build-debug/
+cmake-build-release/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+Makefile
+
+# ==============================
+# macOS
+# ==============================
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ==============================
+# Compilations locales
+# ==============================
+*.o
+*.a
+*.dylib
+*.so
+*.app/
+
