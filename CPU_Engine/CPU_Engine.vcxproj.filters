@@ -33,6 +33,12 @@
     <ClCompile Include="Framebuffer.cpp">
       <Filter>Fichiers sources\Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Projection.cpp">
+      <Filter>Fichiers sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Fichiers sources\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Framebuffer.hpp">
@@ -49,6 +55,15 @@
     </ClInclude>
     <ClInclude Include="Mat4x4.h">
       <Filter>Fichiers d%27en-tête\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.hpp">
+      <Filter>Fichiers d%27en-tête\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Projection.hpp">
+      <Filter>Fichiers d%27en-tête\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

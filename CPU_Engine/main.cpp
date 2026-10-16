@@ -1,4 +1,3 @@
-
 #include <cstdint>
 #include <iostream>
 
@@ -9,21 +8,48 @@ int main()
 {
     constexpr int WIDTH = 800;
     constexpr int HEIGHT = 600;
+    constexpr std::uint32_t BLACK = 0xFF000000;
 
     Framebuffer framebuffer(WIDTH, HEIGHT);
+
+    framebuffer.clear(BLACK);
+    framebuffer.drawTriangleGradient({ 150,480 }, { 400,80 }, { 650,480 });
+
+    Display display(WIDTH, HEIGHT);
+
+    if (!display.isOpen())
+    {
+        std::cerr << "Impossible d'initialiser l'affichage.\n";
+        return 1;
+    }
+
+    while (display.isOpen())
+    {
+        display.processEvents();
+        display.present(framebuffer);
+    }
+
+    return 0;
+
+
+
+    /*constexpr int WIDTH = 800;
+    constexpr int HEIGHT = 600;
+
+    
 
     constexpr std::uint32_t BLACK = 0xFF000000;
     constexpr std::uint32_t RED = 0xFFFF0000;
     constexpr std::uint32_t GREEN = 0xFF00FF00;
     constexpr std::uint32_t BLUE = 0xFF0000FF;
 
-    framebuffer.clear(0xFF000000);
+    framebuffer.clear(BLACK);
+
     framebuffer.drawTriangleGradient(
         150, 100, RED,
         550, 150, GREEN,
         300, 450, BLUE
     );
-
 
     std::cout << "Framebuffer : "
         << framebuffer.getWidth() << " x "
@@ -46,5 +72,5 @@ int main()
         display.present(framebuffer);
     }
 
-    return 0;
+    return 0;*/
 }

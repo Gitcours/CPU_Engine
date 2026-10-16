@@ -24,16 +24,17 @@ public:
 
     // Le quatrième élément est toujours forcé à zéro.
     explicit Vec3(__m128 valeur)
-        : v(_mm_movelh_ps(
-            _mm_unpacklo_ps(valeur, _mm_setzero_ps()),
-            _mm_unpackhi_ps(valeur, _mm_setzero_ps())
+        : v(_mm_set_ps(
+            0.0f,
+            _mm_cvtss_f32(
+                _mm_shuffle_ps(valeur, valeur, _MM_SHUFFLE(2, 2, 2, 2))
+            ),
+            _mm_cvtss_f32(
+                _mm_shuffle_ps(valeur, valeur, _MM_SHUFFLE(1, 1, 1, 1))
+            ),
+            _mm_cvtss_f32(valeur)
         ))
     {
-        // On reconstruit explicitement (x, y, z, 0).
-        v = _mm_set_ps(0.0f,
-            _mm_cvtss_f32(_mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 2, 2, 2))),
-            _mm_cvtss_f32(_mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1))),
-            _mm_cvtss_f32(v));
     }
 
     // ============================================================
