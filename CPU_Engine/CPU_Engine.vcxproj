@@ -133,19 +133,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Display.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Projection.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.hpp" />
     <ClInclude Include="Display.hpp" />
     <ClInclude Include="Framebuffer.hpp" />
     <ClInclude Include="Mat4x4.h" />
-    <ClInclude Include="Mesh.hpp" />
-    <ClInclude Include="Projection.hpp" />
     <ClInclude Include="Vec3.h" />
     <ClInclude Include="Vec4.h" />
   </ItemGroup>
