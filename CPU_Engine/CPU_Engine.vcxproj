@@ -140,9 +140,8 @@
   <ItemGroup>
     <ClInclude Include="Display.hpp" />
     <ClInclude Include="Framebuffer.hpp" />
-    <ClInclude Include="Mat4x4.h" />
-    <ClInclude Include="Vec3.h" />
-    <ClInclude Include="Vec4.h" />
+    <ClInclude Include="mat.h" />
+    <ClInclude Include="vec.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

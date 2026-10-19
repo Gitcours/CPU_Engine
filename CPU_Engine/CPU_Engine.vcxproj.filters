@@ -41,13 +41,10 @@
     <ClInclude Include="Display.hpp">
       <Filter>Fichiers d%27en-tête\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Vec3.h">
+    <ClInclude Include="mat.h">
       <Filter>Fichiers d%27en-tête\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Vec4.h">
-      <Filter>Fichiers d%27en-tête\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Mat4x4.h">
+    <ClInclude Include="vec.h">
       <Filter>Fichiers d%27en-tête\Math</Filter>
     </ClInclude>
   </ItemGroup>
