@@ -3,6 +3,8 @@
 
 #include "Framebuffer.hpp"
 #include "Display.hpp"
+#include "vec.h"
+#include "mat.h"
 
 int main()
 {
