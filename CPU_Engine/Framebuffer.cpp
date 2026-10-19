@@ -127,11 +127,11 @@ void Framebuffer::drawTriangle(
 uint32_t Framebuffer::rgb(uint8_t r, uint8_t g, uint8_t b) {
     return ((uint32_t)0xFFu << 24) | ((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b;
 }
-int Framebuffer::edge(Vec2 p0, Vec2 p1, Vec2 p2){
+int Framebuffer::edge(vec3 p0, vec3 p1, vec3 p2){
     return ((p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x));
 };
 
-void Framebuffer::drawTriangleGradient(Vec2 p0, Vec2 p1, Vec2 p2)
+void Framebuffer::drawTriangleGradient(vec3 p0, vec3 p1, vec3 p2)
 {
     std::uint32_t RED = 0xFFFF0000;
     std::uint32_t GREEN = 0xFF00FF00;
@@ -145,8 +145,8 @@ void Framebuffer::drawTriangleGradient(Vec2 p0, Vec2 p1, Vec2 p2)
     int maxY = p0.y > p1.y ? (p0.y > p2.y ? p0.y : p2.y) : (p1.y > p2.y ? p1.y : p2.y);
 
 
-    for (int y = minY; y < maxY; y++) {
-        for (int x = minX; x < maxX; x++) {
+    for (float y = minY; y < maxY; y++) {
+        for (float x = minX; x < maxX; x++) {
             float e0 = (float)edge(p1, p2, { x,y }) / (float)area;
             float e1 = (float)edge(p2, p0, { x,y }) / (float)area;
             float e2 = (float)edge(p0, p1, { x,y }) / (float)area;
@@ -160,6 +160,31 @@ void Framebuffer::drawTriangleGradient(Vec2 p0, Vec2 p1, Vec2 p2)
             }
         }
     }
+}
+
+void Framebuffer::drawCircle(int cx, int cy, int r, uint32_t color) {
+
+        int x = 0;
+        int y = r;
+        int d = 3 - 2 * r;
+        while (x <= y) {
+            putPixel(cx + x, cy + y, color);
+            putPixel(cx - x, cy + y, color);
+            putPixel(cx + x, cy - y, color);
+            putPixel(cx - x, cy - y, color);
+            putPixel(cx + y, cy + x, color);
+            putPixel(cx - y, cy + x, color);
+            putPixel(cx + y, cy - x, color);
+            putPixel(cx - y, cy - x, color);
+            x++;
+            if (d > 0) {
+                y--;
+                d += 4 * (x - y) + 10;
+            }
+            else {
+                d += 4 * x + 6;
+            }
+        }
 }
 
 

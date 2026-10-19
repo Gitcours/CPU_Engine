@@ -1,15 +1,11 @@
 #pragma once
 #include <cstdint>
 #include <vector>
-
+#include "vec.h"
 class Framebuffer
 {
 public:
-    struct Vec2
-    {
-        int x;
-        int y;
-    };
+    
     struct Color
     {
         int r;
@@ -18,6 +14,7 @@ public:
         int a;
     };
 
+    
     Framebuffer(int width, int height);
 
     void clear(std::uint32_t color);
@@ -25,14 +22,15 @@ public:
     void putPixel(int x, int y, std::uint32_t color);
     void drawLine(int x0, int y0,int x1, int y1,std::uint32_t color);
     void drawTriangle(int x0, int y0,int x1, int y1,int x2, int y2,std::uint32_t color);
-    void drawTriangleGradient(Vec2 p0, Vec2 p1, Vec2 p2);
-    int edge(Vec2 p0, Vec2 p1, Vec2 p2);
+    void drawTriangleGradient(vec3 p0, vec3 p1, vec3 p2);
+    void drawCircle(int cx, int cy, int r, uint32_t color);
+    int edge(vec3 p0, vec3 p1, vec3 p2);
     int getWidth() const;
     int getHeight() const;
 
     const std::vector<std::uint32_t>& getPixels() const;
 
-    
+    vec3 vec;
 private:
     int width;
     int height;
