@@ -33,16 +33,6 @@ int main()
     constexpr int HEIGHT = 600;
     Framebuffer framebuffer(WIDTH, HEIGHT);
     constexpr std::uint32_t BLACK = 0xFF000000;
-    const float R = 200.0f;
-
-    vec3 base[3];
-    for (int i = 0; i < 3; i++) {
-        float a = (float)i / 3.0f * 2.0f * PI - PI / 2.0f;
-        base[i] = { R * cosf(a), R * sinf(a), 0.0f };
-
-    }
-    
-
     
     uint32_t axis_color[3];
     axis_color[0] = framebuffer.rgb(230, 80, 80); 
@@ -67,14 +57,6 @@ int main()
     int    fps_count = 0;
     char   title[160];
 
-   
-
-    
-
-
-    
-
-
     Display display(WIDTH, HEIGHT);
    
     if (!display.isOpen())
@@ -93,6 +75,37 @@ int main()
         mat4 model = mat4_mul(mat4_rotation_y(t * 0.8f),
             mat4_rotation_x(t * 0.5f));
         mat4 mvp = mat4_mul(projection, mat4_mul(view, model));
+
+        int  screen_x[8], screen_y[8];
+        bool visible[8];
+        for (int i = 0; i < 8; i++) {
+            vec4 clip = mat4_mul_vec4(mvp, vec4_from_point(CUBE_VERTS[i]));
+
+           
+            if (clip.w <= 0.0001f) { visible[i] = false; continue; }
+
+            
+            float ndc_x = clip.x / clip.w;     
+            float ndc_y = clip.y / clip.w;
+
+
+            screen_x[i] = (int)((ndc_x + 1.0f) * 0.5f * WIDTH);
+            screen_y[i] = (int)((1.0f - (ndc_y + 1.0f) * 0.5f) * HEIGHT);
+            visible[i] = true;
+        }
+
+
+        framebuffer.clear(framebuffer.rgb(16, 16, 24));
+
+
+        for (int i = 0; i < 12; i++) {
+            int v0 = CUBE_EDGES[i][0];
+            int v1 = CUBE_EDGES[i][1];
+            int axis = CUBE_EDGES[i][2];
+            if (!visible[v0] || !visible[v1]) continue;
+            framebuffer.drawLine(screen_x[v0], screen_y[v0],
+                screen_x[v1], screen_y[v1], axis_color[axis]);
+        }
 
         display.present(framebuffer);
 
