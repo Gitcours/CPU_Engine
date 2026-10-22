@@ -12,21 +12,26 @@
 #include "mat.h"
 
 #define PI 3.14159265358979323846f
+
 static const vec3 CUBE_VERTS[8] = {
     {-1, -1, -1}, { 1, -1, -1}, { 1,  1, -1}, {-1,  1, -1},
     {-1, -1,  1}, { 1, -1,  1}, { 1,  1,  1}, {-1,  1,  1},
 };
 
 static const int CUBE_EDGES[12][3] = {
-    {0,1,0}, {3,2,0}, {7,6,0}, {4,5,0},   
-    {0,3,1}, {1,2,1}, {5,6,1}, {4,7,1},   
-    {0,4,2}, {1,5,2}, {2,6,2}, {3,7,2},   
+    {0,1,0}, {3,2,0}, {7,6,0}, {4,5,0},
+    {0,3,1}, {1,2,1}, {5,6,1}, {4,7,1},
+    {0,4,2}, {1,5,2}, {2,6,2}, {3,7,2},
 };
 
 int main()
 {
+
+    
+
     constexpr int WIDTH = 800;
     constexpr int HEIGHT = 600;
+    Framebuffer framebuffer(WIDTH, HEIGHT);
     constexpr std::uint32_t BLACK = 0xFF000000;
     const float R = 200.0f;
 
@@ -38,15 +43,22 @@ int main()
     }
     
 
-    Framebuffer framebuffer(WIDTH, HEIGHT);
     
-    
-    
-    const uint32_t corner_color[3] = {
-        framebuffer.rgb(255,  60,  60),
-        framebuffer.rgb(60, 255,  60),   
-        framebuffer.rgb(60,  60, 255),   
-    };
+    uint32_t axis_color[3];
+    axis_color[0] = framebuffer.rgb(230, 80, 80); 
+    axis_color[1] = framebuffer.rgb(80, 210, 90);   
+    axis_color[2] = framebuffer.rgb(90, 140, 240);  
+
+    const float aspect = (float)WIDTH / (float)HEIGHT;
+
+    const mat4 projection = mat4_perspective(radians(60.0f), aspect,
+        0.1f, 100.0f);
+
+    const vec3 eye = vec3_make(0, 0, 5);
+    const vec3 target = vec3_make(0, 0, 0);
+    const vec3 up = vec3_make(0, 1, 0);
+    const mat4 view = mat4_look_at(eye, target, up);
+
 
     const Uint64 freq = SDL_GetPerformanceFrequency();
     const Uint64 start = SDL_GetPerformanceCounter();
@@ -73,32 +85,14 @@ int main()
 
     while (display.isOpen())
     {
+        display.processEvents();
 
-
-        
-
-
-        /*display.processEvents();
         double seconds = (double)(SDL_GetPerformanceCounter() - start) / (double)freq;
-        float angle = (float)seconds;
+        float t = (float)seconds;
 
-
-        mat4 transform = mat4_mul(
-            mat4_translation(WIDTH / 2.0f, HEIGHT / 2.0f, 0.0f),
-            mat4_rotation_z(angle));
-
-        vec3 p[3];
-        for (int i = 0; i < 3; i++) p[i] = mat4_apply_point(transform, base[i]);
-
-        framebuffer.clear(BLACK);
-
-        framebuffer.drawTriangleGradient({ p[0].x,p[0].y }, { p[1].x, p[1].y }, { p[2].x, p[2].y });
-
-        framebuffer.drawCircle(WIDTH / 2, HEIGHT / 2, (int)R, framebuffer.rgb(60, 60, 80));
-
-        framebuffer.drawLine((int)p[0].x, (int)p[0].y, (int)p[1].x, (int)p[1].y, framebuffer.rgb(255, 255, 255));
-        framebuffer.drawLine((int)p[1].x, (int)p[1].y, (int)p[2].x, (int)p[2].y, framebuffer.rgb(255, 255, 255));
-        framebuffer.drawLine((int)p[2].x, (int)p[2].y, (int)p[0].x, (int)p[0].y, framebuffer.rgb(255, 255, 255));*/
+        mat4 model = mat4_mul(mat4_rotation_y(t * 0.8f),
+            mat4_rotation_x(t * 0.5f));
+        mat4 mvp = mat4_mul(projection, mat4_mul(view, model));
 
         display.present(framebuffer);
 
