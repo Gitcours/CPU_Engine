@@ -35,7 +35,7 @@ public:
     void drawTriangle(int x0, int y0,int x1, int y1,int x2, int y2,std::uint32_t color);
     void drawTriangleGradient(vec3 p0, vec3 p1, vec3 p2);
     void drawCircle(int cx, int cy, int r, uint32_t color);
-    int edge(vec3 p0, vec3 p1, vec3 p2);
+    float edge(vec3 p0, vec3 p1, vec3 p2);
     int getWidth() const;
     int getHeight() const;
 

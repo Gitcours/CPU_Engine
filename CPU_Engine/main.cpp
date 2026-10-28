@@ -13,6 +13,8 @@
 
 #define PI 3.14159265358979323846f
 
+constexpr bool Backface_culling = true;
+
 static const vec3 CUBE_VERTS[8] = {
     {-1, -1, -1}, { 1, -1, -1}, { 1,  1, -1}, {-1,  1, -1},
     {-1, -1,  1}, { 1, -1,  1}, { 1,  1,  1}, {-1,  1,  1},
@@ -33,9 +35,6 @@ static const int CUBE_TRIANGLES[12][4] = {
 
 int main()
 {
-
-    
-
     constexpr int WIDTH = 800;
     constexpr int HEIGHT = 600;
     Framebuffer framebuffer(WIDTH, HEIGHT);
@@ -113,6 +112,9 @@ int main()
 
         uint32_t cubeColor =framebuffer.rgb(100, 180, 240);
 
+        int drawn = 0;
+        int culled = 0;
+
         for (int i = 0; i < 12; i++) {
             int v0 = CUBE_TRIANGLES[i][0];
             int v1 = CUBE_TRIANGLES[i][1];
@@ -126,6 +128,12 @@ int main()
             vec3 p1 = {static_cast<float>(screen_x[v1]), static_cast<float>(screen_y[v1]), screen_z[v1]};
 
             vec3 p2 = {static_cast<float>(screen_x[v2]), static_cast<float>(screen_y[v2]), screen_z[v2]};
+
+            float area = (p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x);
+
+            if (Backface_culling && area <= 0.0f) {culled++; continue;}
+
+            drawn++;
 
             framebuffer.drawTriangleZ(p0, p1, p2, axis_color[axe]);
         }
@@ -141,14 +149,11 @@ int main()
         if (fps_accum >= 1.0) {
             double fps = static_cast<double>(fps_count) / fps_accum;
             double ms = 1000.0 * fps_accum / static_cast<double>(fps_count);
-            snprintf(title, sizeof title,
-                "Chapter 04 — Vectors & matrices  |  %.1f FPS  (%.2f ms/frame)",
-                fps, ms);
+            snprintf(title, sizeof title, "%.1f FPS | %.2f ms/frame | drew %d | culled %d", fps, ms, drawn, culled);
             SDL_SetWindowTitle(display.window, title);
             fps_accum = 0.0;
             fps_count = 0;
         }
     }
-
     return 0;
 }
