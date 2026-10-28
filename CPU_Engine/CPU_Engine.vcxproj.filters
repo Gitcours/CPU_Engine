@@ -33,6 +33,9 @@
     <ClCompile Include="Framebuffer.cpp">
       <Filter>Fichiers sources\Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="texture.cpp">
+      <Filter>Fichiers sources\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Framebuffer.hpp">
@@ -46,6 +49,15 @@
     </ClInclude>
     <ClInclude Include="vec.h">
       <Filter>Fichiers d%27en-tête\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="obj.h">
+      <Filter>Fichiers d%27en-tête\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.h">
+      <Filter>Fichiers d%27en-tête\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Fichiers d%27en-tête\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
