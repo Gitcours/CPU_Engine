@@ -161,6 +161,8 @@ int main() {
         //        screen_x[c], screen_y[c], ndc_z[c], inv_w[c], uvc,
         //        &tex);
         //}
+        framebuffer.clear(framebuffer.rgb(16, 16, 24));
+        framebuffer.clearZbuffer();
 
             uint32_t cubeColor =framebuffer.rgb(100, 180, 240);
 
