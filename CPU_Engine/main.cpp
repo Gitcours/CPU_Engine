@@ -43,24 +43,23 @@ static const int CUBE_TRIANGLES[12][4] = {
     {0, 5, 1, 1}, {3, 2, 6, 1}, {3, 6, 7, 1}
 };
 
-int main()
-{
+int main() {
 
     Mesh mesh;
     if (!mesh_load(WARP_ASSET_DIR "/spot.obj", &mesh)) return 1;
     printf("loaded spot.obj: %d vertices, %d faces\n",
         mesh.vert_count, mesh.face_count);
-   
+
     Texture tex;
     if (!texture_load(WARP_ASSET_DIR "/spot_texture.png", &tex)) return 1;
     printf("loaded spot_texture.png: %dx%d texels\n", tex.width, tex.height);
     Framebuffer framebuffer(WIDTH, HEIGHT);
     constexpr std::uint32_t BLACK = 0xFF000000;
-    
+
     uint32_t axis_color[3];
-    axis_color[0] = framebuffer.rgb(230, 80, 80); 
-    axis_color[1] = framebuffer.rgb(80, 210, 90);   
-    axis_color[2] = framebuffer.rgb(90, 140, 240);  
+    axis_color[0] = framebuffer.rgb(230, 80, 80);
+    axis_color[1] = framebuffer.rgb(80, 210, 90);
+    axis_color[2] = framebuffer.rgb(90, 140, 240);
 
     const float aspect = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
 
@@ -74,6 +73,7 @@ int main()
 
     int* screen_x = (int*)malloc(mesh.vert_count * sizeof(int));
     int* screen_y = (int*)malloc(mesh.vert_count * sizeof(int));
+    int* screen_z = (int*)malloc(mesh.vert_count * sizeof(int));
     float* ndc_z = (float*)malloc(mesh.vert_count * sizeof(float));
     float* inv_w = (float*)malloc(mesh.vert_count * sizeof(float));
     bool* visible = (bool*)malloc(mesh.vert_count * sizeof(bool));
@@ -88,7 +88,7 @@ int main()
     char   title[160];
 
     Display display(WIDTH, HEIGHT);
-   
+
     if (!display.isOpen())
     {
         std::cerr << "Impossible d'initialiser l'affichage.\n";
@@ -105,97 +105,116 @@ int main()
         mat4 model = mat4_rotation_y(t * 0.7f);
         mat4 mvp = mat4_mul(projection, mat4_mul(view, model));
 
-        for (int i = 0; i < mesh.vert_count; i++) {
-            vec4 clip = mat4_mul_vec4(mvp, vec4_from_point(mesh.verts[i]));
+        for (int i = 0; i < 8; i++) {
+            vec4 clip = mat4_mul_vec4(mvp, vec4_from_point(CUBE_VERTS[i]));
+
+
             if (clip.w <= 0.0001f) { visible[i] = false; continue; }
-            float inv = 1.0f / clip.w;
-            screen_x[i] = (int)((clip.x * inv + 1.0f) * 0.5f * WIDTH);
-            screen_y[i] = (int)((1.0f - (clip.y * inv + 1.0f) * 0.5f) * HEIGHT);
-            ndc_z[i] = clip.z * inv;     // NDC z
-            inv_w[i] = inv;              // 1 / w
+
+
+            float ndc_x = clip.x / clip.w;
+            float ndc_y = clip.y / clip.w;
+            float ndc_z = clip.z / clip.w;
+
+
+            screen_x[i] = static_cast<int>((ndc_x + 1.0f) * 0.5f * WIDTH);
+            screen_y[i] = static_cast<int>((1.0f - (ndc_y + 1.0f) * 0.5f) * HEIGHT);
+            screen_z[i] = ndc_z;
             visible[i] = true;
         }
+        
+        //for (int i = 0; i < mesh.vert_count; i++) {
+        //    vec4 clip = mat4_mul_vec4(mvp, vec4_from_point(mesh.verts[i]));
+        //    if (clip.w <= 0.0001f) { visible[i] = false; continue; }
+        //    float inv = 1.0f / clip.w;
+        //    screen_x[i] = (int)((clip.x * inv + 1.0f) * 0.5f * WIDTH);
+        //    screen_y[i] = (int)((1.0f - (clip.y * inv + 1.0f) * 0.5f) * HEIGHT);
+        //    ndc_z[i] = clip.z * inv;     // NDC z
+        //    inv_w[i] = inv;              // 1 / w
+        //    visible[i] = true;
+        //}
 
-        framebuffer.clear(framebuffer.rgb(16, 16, 24));
-        framebuffer.clearZbuffer();
-      
-        for (int fidx = 0; fidx < mesh.face_count; fidx++) {
-            int a = mesh.faces[fidx * 3 + 0];
-            int b = mesh.faces[fidx * 3 + 1];
-            int c = mesh.faces[fidx * 3 + 2];
-            if (!visible[a] || !visible[b] || !visible[c]) continue;
+        /*framebuffer.clear(framebuffer.rgb(16, 16, 24));
+        framebuffer.clearZbuffer();*/
 
-            // Backface culling (chapter 8): front-facing = negative area.
-            int area = framebuffer.edge({ (float)screen_x[a], (float)screen_y[a]}, { (float)screen_x[b], (float)screen_y[b] }, { (float)screen_x[c], (float)screen_y[c] });
-            if (area >= 0) continue;
+        //for (int fidx = 0; fidx < mesh.face_count; fidx++) {
+        //    int a = mesh.faces[fidx * 3 + 0];
+        //    int b = mesh.faces[fidx * 3 + 1];
+        //    int c = mesh.faces[fidx * 3 + 2];
+        //    if (!visible[a] || !visible[b] || !visible[c]) continue;
 
-            // Per-corner texture coordinates (fall back to (0,0) if a
-            // face somehow lacked a UV index).
-            int ua = mesh.face_uvs[fidx * 3 + 0];
-            int ub = mesh.face_uvs[fidx * 3 + 1];
-            int uc = mesh.face_uvs[fidx * 3 + 2];
-            vec2 uva = (ua >= 0) ? mesh.uvs[ua] : vec2_make(0, 0);
-            vec2 uvb = (ub >= 0) ? mesh.uvs[ub] : vec2_make(0, 0);
-            vec2 uvc = (uc >= 0) ? mesh.uvs[uc] : vec2_make(0, 0);
+        //    // Backface culling (chapter 8): front-facing = negative area.
+        //    int area = framebuffer.edge({ (float)screen_x[a], (float)screen_y[a] }, { (float)screen_x[b], (float)screen_y[b] }, { (float)screen_x[c], (float)screen_y[c] });
+        //    if (area >= 0) continue;
 
-            framebuffer.draw_triangle_textured(screen_x[a], screen_y[a], ndc_z[a], inv_w[a], uva,
-                screen_x[b], screen_y[b], ndc_z[b], inv_w[b], uvb,
-                screen_x[c], screen_y[c], ndc_z[c], inv_w[c], uvc,
-                &tex);
+        //    // Per-corner texture coordinates (fall back to (0,0) if a
+        //    // face somehow lacked a UV index).
+        //    int ua = mesh.face_uvs[fidx * 3 + 0];
+        //    int ub = mesh.face_uvs[fidx * 3 + 1];
+        //    int uc = mesh.face_uvs[fidx * 3 + 2];
+        //    vec2 uva = (ua >= 0) ? mesh.uvs[ua] : vec2_make(0, 0);
+        //    vec2 uvb = (ub >= 0) ? mesh.uvs[ub] : vec2_make(0, 0);
+        //    vec2 uvc = (uc >= 0) ? mesh.uvs[uc] : vec2_make(0, 0);
 
-//         uint32_t cubeColor =framebuffer.rgb(100, 180, 240);
+        //    framebuffer.draw_triangle_textured(screen_x[a], screen_y[a], ndc_z[a], inv_w[a], uva,
+        //        screen_x[b], screen_y[b], ndc_z[b], inv_w[b], uvb,
+        //        screen_x[c], screen_y[c], ndc_z[c], inv_w[c], uvc,
+        //        &tex);
+        //}
 
-//         int drawn = 0;
-//         int culled = 0;
+            uint32_t cubeColor =framebuffer.rgb(100, 180, 240);
 
-//         for (int i = 0; i < 12; i++) {
-//             int v0 = CUBE_TRIANGLES[i][0];
-//             int v1 = CUBE_TRIANGLES[i][1];
-//             int v2 = CUBE_TRIANGLES[i][2];
+            int drawn = 0;
+            int culled = 0;
 
-//             int axe = CUBE_TRIANGLES[i][3];
+            for (int i = 0; i < 12; i++) {
+                int v0 = CUBE_TRIANGLES[i][0];
+                int v1 = CUBE_TRIANGLES[i][1];
+                int v2 = CUBE_TRIANGLES[i][2];
 
-//             if (!visible[v0] || !visible[v1] || !visible[v2]) continue;
-//             vec3 p0 = {static_cast<float>(screen_x[v0]), static_cast<float>(screen_y[v0]), screen_z[v0]};
+                int axe = CUBE_TRIANGLES[i][3];
 
-//             vec3 p1 = {static_cast<float>(screen_x[v1]), static_cast<float>(screen_y[v1]), screen_z[v1]};
+                if (!visible[v0] || !visible[v1] || !visible[v2]) continue;
+                vec3 p0 = {static_cast<float>(screen_x[v0]), static_cast<float>(screen_y[v0]), screen_z[v0]};
 
-//             vec3 p2 = {static_cast<float>(screen_x[v2]), static_cast<float>(screen_y[v2]), screen_z[v2]};
+                vec3 p1 = {static_cast<float>(screen_x[v1]), static_cast<float>(screen_y[v1]), screen_z[v1]};
 
-//             float area = (p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x);
+                vec3 p2 = {static_cast<float>(screen_x[v2]), static_cast<float>(screen_y[v2]), screen_z[v2]};
 
-//             if (Backface_culling && area <= 0.0f) {culled++; continue;}
+                float area = (p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x);
 
-//             drawn++;
+                if (Backface_culling && area <= 0.0f) {culled++; continue;}
 
-//             framebuffer.drawTriangleZ(p0, p1, p2, axis_color[axe]);
-        }
+                drawn++;
 
-        display.present(framebuffer);
+                framebuffer.drawTriangleZ(p0, p1, p2, axis_color[axe]);
+           }
 
-        Uint64 now = SDL_GetPerformanceCounter();
-        double dt = static_cast<double>(now - last) / static_cast<double>(freq);
-        last = now;
-        fps_accum += dt;
-        fps_count += 1;
+            display.present(framebuffer);
 
-        if (fps_accum >= 1.0) {
-            double fps = static_cast<double>(fps_count) / fps_accum;
-            double ms = 1000.0 * fps_accum / static_cast<double>(fps_count);
-            snprintf(title, sizeof title, "%.1f FPS | %.2f ms/frame | drew %d | culled %d", fps, ms, drawn, culled);
-            SDL_SetWindowTitle(display.window, title);
-            fps_accum = 0.0;
-            fps_count = 0;
-        }
+            Uint64 now = SDL_GetPerformanceCounter();
+            double dt = static_cast<double>(now - last) / static_cast<double>(freq);
+            last = now;
+            fps_accum += dt;
+            fps_count += 1;
+
+            if (fps_accum >= 1.0) {
+                double fps = static_cast<double>(fps_count) / fps_accum;
+                double ms = 1000.0 * fps_accum / static_cast<double>(fps_count);
+                snprintf(title, sizeof title, "%.1f FPS | %.2f ms/frame | drew %d | culled %d", fps, ms);
+                SDL_SetWindowTitle(display.window, title);
+                fps_accum = 0.0;
+                fps_count = 0;
+            }
 
     }
 
-    free(screen_x); free(screen_y);; free(visible);
-    mesh_free(&mesh);
-    SDL_DestroyTexture(display.texture);
-    SDL_DestroyRenderer(display.renderer);
-    SDL_DestroyWindow(display.window);
-    SDL_Quit();
-    
-    return 0;
+        free(screen_x); free(screen_y);; free(visible);
+        mesh_free(&mesh);
+        SDL_DestroyTexture(display.texture);
+        SDL_DestroyRenderer(display.renderer);
+        SDL_DestroyWindow(display.window);
+        SDL_Quit();
+
+        return 0;
 }

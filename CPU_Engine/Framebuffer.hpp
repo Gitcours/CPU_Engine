@@ -26,7 +26,8 @@ public:
 
     
     Framebuffer(int width, int height);
-    
+
+    float edge(vec3 p0, vec3 p1, vec3 p2);
     void clear(std::uint32_t color);
     void clearZbuffer();
     uint32_t rgb(uint8_t r, uint8_t g, uint8_t b);
