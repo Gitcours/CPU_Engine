@@ -106,9 +106,10 @@ void Display::processEvents()
     {
         if (event.type == SDL_QUIT)
             open = false;
+
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)
+            open = false;
     }
-    if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)
-        open = false;
 }
 
 void Display::present(const Framebuffer& framebuffer)

@@ -19,10 +19,11 @@
 #define WIDTH  800
 #define HEIGHT 600
 #define PI 3.14159265358979323846f
-
 #ifndef WARP_ASSET_DIR
 #define WARP_ASSET_DIR "assets"
 #endif
+
+constexpr bool Backface_culling = true;
 
 static const vec3 CUBE_VERTS[8] = {
     {-1, -1, -1}, { 1, -1, -1}, { 1,  1, -1}, {-1,  1, -1},
@@ -44,6 +45,7 @@ static const int CUBE_TRIANGLES[12][4] = {
 
 int main()
 {
+
     Mesh mesh;
     if (!mesh_load(WARP_ASSET_DIR "/spot.obj", &mesh)) return 1;
     printf("loaded spot.obj: %d vertices, %d faces\n",
@@ -52,7 +54,6 @@ int main()
     Texture tex;
     if (!texture_load(WARP_ASSET_DIR "/spot_texture.png", &tex)) return 1;
     printf("loaded spot_texture.png: %dx%d texels\n", tex.width, tex.height);
-
     Framebuffer framebuffer(WIDTH, HEIGHT);
     constexpr std::uint32_t BLACK = 0xFF000000;
     
@@ -117,7 +118,7 @@ int main()
 
         framebuffer.clear(framebuffer.rgb(16, 16, 24));
         framebuffer.clearZbuffer();
-
+      
         for (int fidx = 0; fidx < mesh.face_count; fidx++) {
             int a = mesh.faces[fidx * 3 + 0];
             int b = mesh.faces[fidx * 3 + 1];
@@ -141,6 +142,33 @@ int main()
                 screen_x[b], screen_y[b], ndc_z[b], inv_w[b], uvb,
                 screen_x[c], screen_y[c], ndc_z[c], inv_w[c], uvc,
                 &tex);
+
+//         uint32_t cubeColor =framebuffer.rgb(100, 180, 240);
+
+//         int drawn = 0;
+//         int culled = 0;
+
+//         for (int i = 0; i < 12; i++) {
+//             int v0 = CUBE_TRIANGLES[i][0];
+//             int v1 = CUBE_TRIANGLES[i][1];
+//             int v2 = CUBE_TRIANGLES[i][2];
+
+//             int axe = CUBE_TRIANGLES[i][3];
+
+//             if (!visible[v0] || !visible[v1] || !visible[v2]) continue;
+//             vec3 p0 = {static_cast<float>(screen_x[v0]), static_cast<float>(screen_y[v0]), screen_z[v0]};
+
+//             vec3 p1 = {static_cast<float>(screen_x[v1]), static_cast<float>(screen_y[v1]), screen_z[v1]};
+
+//             vec3 p2 = {static_cast<float>(screen_x[v2]), static_cast<float>(screen_y[v2]), screen_z[v2]};
+
+//             float area = (p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x);
+
+//             if (Backface_culling && area <= 0.0f) {culled++; continue;}
+
+//             drawn++;
+
+//             framebuffer.drawTriangleZ(p0, p1, p2, axis_color[axe]);
         }
 
         display.present(framebuffer);
@@ -154,22 +182,20 @@ int main()
         if (fps_accum >= 1.0) {
             double fps = static_cast<double>(fps_count) / fps_accum;
             double ms = 1000.0 * fps_accum / static_cast<double>(fps_count);
-            snprintf(title, sizeof title,
-                "Chapter 04 — Vectors & matrices  |  %.1f FPS  (%.2f ms/frame)",
-                fps, ms);
+            snprintf(title, sizeof title, "%.1f FPS | %.2f ms/frame | drew %d | culled %d", fps, ms, drawn, culled);
             SDL_SetWindowTitle(display.window, title);
             fps_accum = 0.0;
             fps_count = 0;
         }
 
     }
+
     free(screen_x); free(screen_y);; free(visible);
     mesh_free(&mesh);
     SDL_DestroyTexture(display.texture);
     SDL_DestroyRenderer(display.renderer);
     SDL_DestroyWindow(display.window);
     SDL_Quit();
-    return 0;
-
+    
     return 0;
 }

@@ -202,7 +202,7 @@ void Framebuffer::drawTriangleZ(vec3 p0, vec3 p1, vec3 p2, std::uint32_t color)
 uint32_t Framebuffer::rgb(uint8_t r, uint8_t g, uint8_t b) {
     return ((uint32_t)0xFFu << 24) | ((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b;
 }
-int Framebuffer::edge(vec3 p0, vec3 p1, vec3 p2){
+float Framebuffer::edge(vec3 p0, vec3 p1, vec3 p2){
     return ((p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x));
 };
 
