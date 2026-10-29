@@ -2,6 +2,8 @@
 #include <cstdint>
 #include <vector>
 #include "vec.h"
+#include "texture.h"
+
 class Framebuffer
 {
 private:
@@ -24,7 +26,7 @@ public:
 
     
     Framebuffer(int width, int height);
-
+    
     void clear(std::uint32_t color);
     void clearZbuffer();
     uint32_t rgb(uint8_t r, uint8_t g, uint8_t b);
@@ -35,7 +37,11 @@ public:
     void drawTriangle(int x0, int y0,int x1, int y1,int x2, int y2,std::uint32_t color);
     void drawTriangleGradient(vec3 p0, vec3 p1, vec3 p2);
     void drawCircle(int cx, int cy, int r, uint32_t color);
-    float edge(vec3 p0, vec3 p1, vec3 p2);
+    void draw_triangle_textured(int x0, int y0, float z0, float iw0, vec2 uv0,
+        int x1, int y1, float z1, float iw1, vec2 uv1,
+        int x2, int y2, float z2, float iw2, vec2 uv2,
+        const Texture* tex);
+
     int getWidth() const;
     int getHeight() const;
 

@@ -9,8 +9,14 @@
 #pragma once
 #include <math.h>
 
+typedef struct { float x, y; } vec2;
 typedef struct { float x, y, z; } vec3;
 typedef struct { float x, y, z, w; } vec4;
+
+static inline vec2 vec2_make(float x, float y) {
+    vec2 v = { x, y };
+    return v;
+}
 
 static inline vec3 vec3_make(float x, float y, float z) {
     vec3 v = { x, y, z };

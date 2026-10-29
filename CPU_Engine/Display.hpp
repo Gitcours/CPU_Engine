@@ -6,6 +6,7 @@
 #else
     #error "SDL2 introuvable : verifiez les chemins d'inclusion."
 #endif
+
 #include "Framebuffer.hpp"
 
 class Display

@@ -1,16 +1,30 @@
 #include "Framebuffer.hpp"
+
 #include <cstdlib>
 #include <algorithm>
 #include <cstdint>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+
+#define WIDTH  800
+#define HEIGHT 600
 
 constexpr float maxF{ std::numeric_limits<float>::max() };
 
 Framebuffer::Framebuffer(int width, int height) : 
     width(width),
     height(height),
-    pixels(width* height, 0xFF000000), //je peut enfin arreter de faire des boucles for infini pour set plusieurs elements avec la meme valeur
+    pixels(width* height, 0xFF000000), 
     zbuffer(width* height, maxF)
 {}
+
+
+static inline int clampi(int v, int lo, int hi) {
+    return v < lo ? lo : (v > hi ? hi : v);
+}
 
 void Framebuffer::clear(std::uint32_t color)
 {
@@ -246,6 +260,72 @@ void Framebuffer::drawCircle(int cx, int cy, int r, uint32_t color) {
                 d += 4 * x + 6;
             }
         }
+}
+
+void Framebuffer::draw_triangle_textured(int x0, int y0, float z0, float iw0, vec2 uv0,
+    int x1, int y1, float z1, float iw1, vec2 uv1,
+    int x2, int y2, float z2, float iw2, vec2 uv2,
+    const Texture* tex) {
+    int area = edge({ (float)x0, (float)y0 }, { (float)x1, (float)y1 }, { (float)x2, (float)y2 });
+    if (area == 0) return;
+
+    // Normalise winding to positive, carrying ALL per-vertex
+    // attributes (depth, 1/w, uv) along with the swapped vertex.
+    if (area < 0) {
+        int tx = x1, ty = y1; float tz = z1, tiw = iw1; vec2 tuv = uv1;
+        x1 = x2; y1 = y2; z1 = z2; iw1 = iw2; uv1 = uv2;
+        x2 = tx; y2 = ty; z2 = tz; iw2 = tiw; uv2 = tuv;
+        area = -area;
+    }
+
+    int minx = clampi(x0 < x1 ? (x0 < x2 ? x0 : x2) : (x1 < x2 ? x1 : x2), 0, WIDTH - 1);
+    int miny = clampi(y0 < y1 ? (y0 < y2 ? y0 : y2) : (y1 < y2 ? y1 : y2), 0, HEIGHT - 1);
+    int maxx = clampi(x0 > x1 ? (x0 > x2 ? x0 : x2) : (x1 > x2 ? x1 : x2), 0, WIDTH - 1);
+    int maxy = clampi(y0 > y1 ? (y0 > y2 ? y0 : y2) : (y1 > y2 ? y1 : y2), 0, HEIGHT - 1);
+
+    float inv_area = 1.0f / (float)area;
+
+    // Pre-divide the UVs by w. These (u/w, v/w) are the quantities
+    // that DO interpolate linearly in screen space — unlike u, v
+    // themselves. 1/w interpolates linearly too.
+    float u0w = uv0.x * iw0, v0w = uv0.y * iw0;
+    float u1w = uv1.x * iw1, v1w = uv1.y * iw1;
+    float u2w = uv2.x * iw2, v2w = uv2.y * iw2;
+
+    for (int y = miny; y <= maxy; y++) {
+        for (int x = minx; x <= maxx; x++) {
+            int e0 = edge({ (float)x1, (float)y1 }, { (float)x2, (float)y2 }, { (float)x, (float)y });
+            int e1 = edge({ (float)x2, (float)y2 }, { (float)x0, (float)y0 }, { (float)x, (float)y });
+            int e2 = edge({ (float)x0, (float)y0 }, { (float)x1, (float)y1 }, { (float)x, (float)y });
+            if ((e0 | e1 | e2) < 0) continue;
+
+            float l0 = e0 * inv_area;
+            float l1 = e1 * inv_area;
+            float l2 = e2 * inv_area;
+
+            // Depth: linear in screen space already (chapter 7).
+            float z = l0 * z0 + l1 * z1 + l2 * z2;
+
+            int idx = y * WIDTH + x;
+            if (z >= zbuffer[idx]) continue;
+
+#if PERSPECTIVE_CORRECT
+            // Interpolate u/w, v/w, 1/w linearly, then divide back.
+            float uw = l0 * u0w + l1 * u1w + l2 * u2w;
+            float vw = l0 * v0w + l1 * v1w + l2 * v2w;
+            float iw = l0 * iw0 + l1 * iw1 + l2 * iw2;
+            float u = uw / iw;
+            float v = vw / iw;
+#else
+            // Naive: interpolate u, v directly in screen space. Wrong
+            // under perspective — the texture visibly warps.
+            float u = l0 * uv0.x + l1 * uv1.x + l2 * uv2.x;
+            float v = l0 * uv0.y + l1 * uv1.y + l2 * uv2.y;
+#endif
+            zbuffer[idx] = z;
+            pixels[idx] = texture_sample(tex, u, v);
+        }
+    }
 }
 
 

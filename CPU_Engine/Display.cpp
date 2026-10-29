@@ -100,7 +100,7 @@ bool Display::isOpen() const
 
 void Display::processEvents()
 {
-    SDL_Event event;
+   SDL_Event event;
 
     while (SDL_PollEvent(&event))
     {
