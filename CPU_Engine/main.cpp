@@ -85,6 +85,8 @@ int main() {
     double fps_accum = 0.0;
     int    fps_count = 0;
     char   title[160];
+    int drawn = 0;
+    int culled = 0;
 
     Display display(WIDTH, HEIGHT);
 
@@ -101,29 +103,8 @@ int main() {
         double seconds = static_cast<double>(SDL_GetPerformanceCounter() - start) / static_cast<double>(freq);
         float t = static_cast<float>(seconds);
 
-        int drawn = 0;
-        int culled = 0;
-
         mat4 model = mat4_rotation_y(t * 0.7f);
         mat4 mvp = mat4_mul(projection, mat4_mul(view, model));
-
-        for (int i = 0; i < 8; i++) {
-            vec4 clip = mat4_mul_vec4(mvp, vec4_from_point(CUBE_VERTS[i]));
-
-
-            if (clip.w <= 0.0001f) { visible[i] = false; continue; }
-
-
-            float ndc_x = clip.x / clip.w;
-            float ndc_y = clip.y / clip.w;
-            float ndc_z = clip.z / clip.w;
-
-
-            screen_x[i] = static_cast<int>((ndc_x + 1.0f) * 0.5f * WIDTH);
-            screen_y[i] = static_cast<int>((1.0f - (ndc_y + 1.0f) * 0.5f) * HEIGHT);
-            screen_z[i] = ndc_z;
-            visible[i] = true;
-        }
         
         for (int i = 0; i < mesh.vert_count; i++) {
             vec4 clip = mat4_mul_vec4(mvp, vec4_from_point(mesh.verts[i]));
@@ -184,7 +165,8 @@ int main() {
                 fps_accum = 0.0;
                 fps_count = 0;
             }
-
+            drawn = 0;
+            culled = 0;
     }
 
         free(screen_x); free(screen_y);; free(visible);
