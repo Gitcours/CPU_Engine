@@ -105,7 +105,7 @@ int main() {
         mat4 model = mat4_rotation_y(t * 0.7f);
         mat4 mvp = mat4_mul(projection, mat4_mul(view, model));
 
-        for (int i = 0; i < 8; i++) {
+        /*for (int i = 0; i < 8; i++) {
             vec4 clip = mat4_mul_vec4(mvp, vec4_from_point(CUBE_VERTS[i]));
 
 
@@ -121,50 +121,50 @@ int main() {
             screen_y[i] = static_cast<int>((1.0f - (ndc_y + 1.0f) * 0.5f) * HEIGHT);
             screen_z[i] = ndc_z;
             visible[i] = true;
-        }
-        
-        //for (int i = 0; i < mesh.vert_count; i++) {
-        //    vec4 clip = mat4_mul_vec4(mvp, vec4_from_point(mesh.verts[i]));
-        //    if (clip.w <= 0.0001f) { visible[i] = false; continue; }
-        //    float inv = 1.0f / clip.w;
-        //    screen_x[i] = (int)((clip.x * inv + 1.0f) * 0.5f * WIDTH);
-        //    screen_y[i] = (int)((1.0f - (clip.y * inv + 1.0f) * 0.5f) * HEIGHT);
-        //    ndc_z[i] = clip.z * inv;     // NDC z
-        //    inv_w[i] = inv;              // 1 / w
-        //    visible[i] = true;
-        //}
-
-        /*framebuffer.clear(framebuffer.rgb(16, 16, 24));
-        framebuffer.clearZbuffer();*/
-
-        //for (int fidx = 0; fidx < mesh.face_count; fidx++) {
-        //    int a = mesh.faces[fidx * 3 + 0];
-        //    int b = mesh.faces[fidx * 3 + 1];
-        //    int c = mesh.faces[fidx * 3 + 2];
-        //    if (!visible[a] || !visible[b] || !visible[c]) continue;
-
-        //    // Backface culling (chapter 8): front-facing = negative area.
-        //    int area = framebuffer.edge({ (float)screen_x[a], (float)screen_y[a] }, { (float)screen_x[b], (float)screen_y[b] }, { (float)screen_x[c], (float)screen_y[c] });
-        //    if (area >= 0) continue;
-
-        //    // Per-corner texture coordinates (fall back to (0,0) if a
-        //    // face somehow lacked a UV index).
-        //    int ua = mesh.face_uvs[fidx * 3 + 0];
-        //    int ub = mesh.face_uvs[fidx * 3 + 1];
-        //    int uc = mesh.face_uvs[fidx * 3 + 2];
-        //    vec2 uva = (ua >= 0) ? mesh.uvs[ua] : vec2_make(0, 0);
-        //    vec2 uvb = (ub >= 0) ? mesh.uvs[ub] : vec2_make(0, 0);
-        //    vec2 uvc = (uc >= 0) ? mesh.uvs[uc] : vec2_make(0, 0);
-
-        //    framebuffer.draw_triangle_textured(screen_x[a], screen_y[a], ndc_z[a], inv_w[a], uva,
-        //        screen_x[b], screen_y[b], ndc_z[b], inv_w[b], uvb,
-        //        screen_x[c], screen_y[c], ndc_z[c], inv_w[c], uvc,
-        //        &tex);
-        //}
+        }*/
         framebuffer.clear(framebuffer.rgb(16, 16, 24));
         framebuffer.clearZbuffer();
 
-            uint32_t cubeColor =framebuffer.rgb(100, 180, 240);
+        for (int i = 0; i < mesh.vert_count; i++) {
+            vec4 clip = mat4_mul_vec4(mvp, vec4_from_point(mesh.verts[i]));
+            if (clip.w <= 0.0001f) { visible[i] = false; continue; }
+            float inv = 1.0f / clip.w;
+            screen_x[i] = (int)((clip.x * inv + 1.0f) * 0.5f * WIDTH);
+            screen_y[i] = (int)((1.0f - (clip.y * inv + 1.0f) * 0.5f) * HEIGHT);
+            ndc_z[i] = clip.z * inv;     // NDC z
+            inv_w[i] = inv;              // 1 / w
+            visible[i] = true;
+        }
+
+        
+
+        for (int fidx = 0; fidx < mesh.face_count; fidx++) {
+            int a = mesh.faces[fidx * 3 + 0];
+            int b = mesh.faces[fidx * 3 + 1];
+            int c = mesh.faces[fidx * 3 + 2];
+            if (!visible[a] || !visible[b] || !visible[c]) continue;
+
+            // Backface culling (chapter 8): front-facing = negative area.
+            int area = framebuffer.edge({ (float)screen_x[a], (float)screen_y[a] }, { (float)screen_x[b], (float)screen_y[b] }, { (float)screen_x[c], (float)screen_y[c] });
+            if (area >= 0) continue;
+
+            // Per-corner texture coordinates (fall back to (0,0) if a
+            // face somehow lacked a UV index).
+            int ua = mesh.face_uvs[fidx * 3 + 0];
+            int ub = mesh.face_uvs[fidx * 3 + 1];
+            int uc = mesh.face_uvs[fidx * 3 + 2];
+            vec2 uva = (ua >= 0) ? mesh.uvs[ua] : vec2_make(0, 0);
+            vec2 uvb = (ub >= 0) ? mesh.uvs[ub] : vec2_make(0, 0);
+            vec2 uvc = (uc >= 0) ? mesh.uvs[uc] : vec2_make(0, 0);
+
+            framebuffer.draw_triangle_textured(screen_x[a], screen_y[a], ndc_z[a], inv_w[a], uva,
+                screen_x[b], screen_y[b], ndc_z[b], inv_w[b], uvb,
+                screen_x[c], screen_y[c], ndc_z[c], inv_w[c], uvc,
+                &tex);
+        }
+        
+
+            /*uint32_t cubeColor =framebuffer.rgb(100, 180, 240);
 
             int drawn = 0;
             int culled = 0;
@@ -190,7 +190,7 @@ int main() {
                 drawn++;
 
                 framebuffer.drawTriangleZ(p0, p1, p2, axis_color[axe]);
-           }
+           }*/
 
             display.present(framebuffer);
 
