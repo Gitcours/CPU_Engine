@@ -22,6 +22,12 @@
     <Filter Include="Fichiers d%27en-tête\Math">
       <UniqueIdentifier>{91131431-05ab-4ad2-bd7a-a8915818c4a1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Fichiers d%27en-tête\ECS">
+      <UniqueIdentifier>{47edcfec-a4c9-46dd-af54-e63ca97a5f3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\ECS">
+      <UniqueIdentifier>{dc2cb407-2a3c-47da-9116-f4f8521f5c19}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -35,6 +41,15 @@
     </ClCompile>
     <ClCompile Include="texture.cpp">
       <Filter>Fichiers sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="componentstorage.cpp">
+      <Filter>Fichiers sources\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>Fichiers sources\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="EntityManager.cpp">
+      <Filter>Fichiers sources\ECS</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -58,6 +73,15 @@
     </ClInclude>
     <ClInclude Include="stb_image.h">
       <Filter>Fichiers d%27en-tête\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="componentstorage.h">
+      <Filter>Fichiers d%27en-tête\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Fichiers d%27en-tête\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="EntityManager.h">
+      <Filter>Fichiers d%27en-tête\ECS</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
