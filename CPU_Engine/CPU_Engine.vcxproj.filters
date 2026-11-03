@@ -42,9 +42,6 @@
     <ClCompile Include="texture.cpp">
       <Filter>Fichiers sources\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="componentstorage.cpp">
-      <Filter>Fichiers sources\ECS</Filter>
-    </ClCompile>
     <ClCompile Include="Entity.cpp">
       <Filter>Fichiers sources\ECS</Filter>
     </ClCompile>

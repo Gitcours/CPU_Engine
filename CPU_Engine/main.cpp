@@ -15,6 +15,7 @@
 
 #include "Display.hpp"
 #include "mat.h"
+#include "componentstorage.h"
 
 #define WIDTH  800
 #define HEIGHT 600
@@ -43,8 +44,24 @@ static const int CUBE_TRIANGLES[12][4] = {
     {0, 5, 1, 1}, {3, 2, 6, 1}, {3, 6, 7, 1}
 };
 
-int main() {
+struct Position
+{
+    int x;
+    int y;
 
+};
+int main() {
+    Position position;
+    position.x = 1;
+    position.y = 2;
+
+    ComponentStorage<Position> componentstorage;
+    componentstorage.Add(0, &position);
+    if (componentstorage.Has(0)) {
+        Position* position2 = (Position*)componentstorage.Get(0);
+        std::cout << "Cool" << ","<< position2->x << std::endl;
+    }
+    
     Mesh mesh;
     if (!mesh_load(WARP_ASSET_DIR "/spot.obj", &mesh)) return 1;
     printf("loaded spot.obj: %d vertices, %d faces\n",
