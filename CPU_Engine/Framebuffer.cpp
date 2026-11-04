@@ -44,10 +44,7 @@ void Framebuffer::clearZbuffer()
 
 void Framebuffer::putPixel(int x, int y, std::uint32_t color)
 {
-    if (x < 0 || x >= width || y < 0 || y >= height)
-    {
-        return;
-    }
+    if (x < 0 || x >= width || y < 0 || y >= height) return;
 
     const int index = y * width + x;
     pixels[index] = color;
@@ -55,8 +52,7 @@ void Framebuffer::putPixel(int x, int y, std::uint32_t color)
 
 void Framebuffer::putPixelDepth(int x, int y, float z, std::uint32_t color)
 {
-    if (x < 0 || x >= width || y < 0 || y >= height)
-        return;
+    if (x < 0 || x >= width || y < 0 || y >= height) return;
 
     int index = y * width + x;
 
@@ -81,8 +77,7 @@ void Framebuffer::drawLine(int x0, int y0, int x1, int y1, std::uint32_t color)
     {
         putPixel(x0, y0, color);
 
-        if (x0 == x1 && y0 == y1)
-            break;
+        if (x0 == x1 && y0 == y1) break;
 
         const int error2 = 2 * error;
 

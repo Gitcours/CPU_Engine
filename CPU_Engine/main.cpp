@@ -45,16 +45,24 @@ static const int CUBE_TRIANGLES[12][4] = {
 
 int main() {
 
-    Mesh mesh;
-    if (!mesh_load(WARP_ASSET_DIR "/spot.obj", &mesh)) return 1;
+    /*Mesh mesh_vache;
+    if (!mesh_load(WARP_ASSET_DIR "/spot.obj", &mesh_vache)) return 1;
     printf("loaded spot.obj: %d vertices, %d faces\n",
-        mesh.vert_count, mesh.face_count);
+        mesh_vache.vert_count, mesh_vache.face_count);
 
-    Texture tex;
-    if (!texture_load(WARP_ASSET_DIR "/spot_texture.png", &tex)) return 1;
-    printf("loaded spot_texture.png: %dx%d texels\n", tex.width, tex.height);
+    Texture tex_vache;
+    if (!texture_load(WARP_ASSET_DIR "/spot_texture.png", &tex_vache)) return 1;
+    printf("loaded spot_texture.png: %dx%d texels\n", tex_vache.width, tex_vache.height);*/
+
     Framebuffer framebuffer(WIDTH, HEIGHT);
     constexpr std::uint32_t BLACK = 0xFF000000;
+
+    Mesh mesh_wtc;
+    if (!mesh_load(WARP_ASSET_DIR "/The World Trade Center.obj", &mesh_wtc)) return 1;
+    printf("loaded spot.obj: %d vertices, %d faces\n",
+        mesh_wtc.vert_count, mesh_wtc.face_count);
+
+    //Texture tex_wtc;
 
     uint32_t axis_color[3];
     axis_color[0] = framebuffer.rgb(230, 80, 80);
@@ -63,19 +71,19 @@ int main() {
 
     const float aspect = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
 
-    const mat4 projection = mat4_perspective(radians(60.0f), aspect,
-        0.1f, 100.0f);
+    const mat4 projection = mat4_perspective(radians(60.0f), aspect, 1.0f, 6000.0f);
 
-    const vec3 eye = vec3_make(0, 0, 5);
-    const vec3 target = vec3_make(0, 0, 0);
-    const vec3 up = vec3_make(0, 1, 0);
+    const vec3 eye = vec3_make(40000.0f, 26000.0f, 24000.0f);
+    const vec3 target = vec3_make(0.0f, 24000.0f, 0.0f);
+    const vec3 up = vec3_make(0.0f, 1.0f, 0.0f);
+
     const mat4 view = mat4_look_at(eye, target, up);
 
-    int* screen_x = (int*)malloc(mesh.vert_count * sizeof(int));
-    int* screen_y = (int*)malloc(mesh.vert_count * sizeof(int));
-    float* screen_z = (float*)malloc(mesh.vert_count * sizeof(float));
-    float* inv_w = (float*)malloc(mesh.vert_count * sizeof(float));
-    bool* visible = (bool*)malloc(mesh.vert_count * sizeof(bool));
+    int* screen_x = (int*)malloc(mesh_wtc.vert_count * sizeof(int));
+    int* screen_y = (int*)malloc(mesh_wtc.vert_count * sizeof(int));
+    float* screen_z = (float*)malloc(mesh_wtc.vert_count * sizeof(float));
+    float* inv_w = (float*)malloc(mesh_wtc.vert_count * sizeof(float));
+    bool* visible = (bool*)malloc(mesh_wtc.vert_count * sizeof(bool));
 
 
 
@@ -103,11 +111,13 @@ int main() {
         double seconds = static_cast<double>(SDL_GetPerformanceCounter() - start) / static_cast<double>(freq);
         float t = static_cast<float>(seconds);
 
-        mat4 model = mat4_rotation_y(t * 0.7f);
+        mat4 animation = mat4_rotation_y(t * 0.7f);
+        mat4 rotation = mat4_rotation_x(radians(-90.0f));
+        mat4 model = mat4_mul(animation, rotation);
         mat4 mvp = mat4_mul(projection, mat4_mul(view, model));
         
-        for (int i = 0; i < mesh.vert_count; i++) {
-            vec4 clip = mat4_mul_vec4(mvp, vec4_from_point(mesh.verts[i]));
+        for (int i = 0; i < mesh_wtc.vert_count; i++) {
+            vec4 clip = mat4_mul_vec4(mvp, vec4_from_point(mesh_wtc.verts[i]));
 
             if (clip.w <= 0.0001f) { visible[i] = false; continue; }
             float inv = 1.0f / clip.w;
@@ -121,31 +131,56 @@ int main() {
         framebuffer.clear(framebuffer.rgb(16, 16, 24));
         framebuffer.clearZbuffer();
 
-        for (int fidx = 0; fidx < mesh.face_count; fidx++) {
-            int a = mesh.faces[fidx * 3 + 0];
-            int b = mesh.faces[fidx * 3 + 1];
-            int c = mesh.faces[fidx * 3 + 2];
+        //for (int fidx = 0; fidx < mesh_vache.face_count; fidx++) {
+        //    int a = mesh_vache.faces[fidx * 3 + 0];
+        //    int b = mesh_vache.faces[fidx * 3 + 1];
+        //    int c = mesh_vache.faces[fidx * 3 + 2];
+        //    if (!visible[a] || !visible[b] || !visible[c]) continue;
+
+        //    // Backface culling (chapter 8): front-facing = negative area.
+        //    int area = framebuffer.edge({ (float)screen_x[a], (float)screen_y[a] }, { (float)screen_x[b], (float)screen_y[b] }, { (float)screen_x[c], (float)screen_y[c] });
+        //    if (Backface_culling && area >= 0) { culled++;  continue; }
+
+        //    drawn++;
+
+        //    // Per-corner texture coordinates (fall back to (0,0) if a
+        //    // face somehow lacked a UV index).
+        //    int ua = mesh_vache.face_uvs[fidx * 3 + 0];
+        //    int ub = mesh_vache.face_uvs[fidx * 3 + 1];
+        //    int uc = mesh_vache.face_uvs[fidx * 3 + 2];
+        //    vec2 uva = (ua >= 0) ? mesh_vache.uvs[ua] : vec2_make(0, 0);
+        //    vec2 uvb = (ub >= 0) ? mesh_vache.uvs[ub] : vec2_make(0, 0);
+        //    vec2 uvc = (uc >= 0) ? mesh_vache.uvs[uc] : vec2_make(0, 0);
+
+        //    framebuffer.draw_triangle_textured(screen_x[a], screen_y[a], screen_z[a], inv_w[a], uva,
+        //        screen_x[b], screen_y[b], screen_z[b], inv_w[b], uvb,
+        //        screen_x[c], screen_y[c], screen_z[c], inv_w[c], uvc,
+        //        &tex_vache);
+        //}
+
+        for (int fidx = 0; fidx < mesh_wtc.face_count; fidx++)
+        {
+            int a = mesh_wtc.faces[fidx * 3 + 0];
+            int b = mesh_wtc.faces[fidx * 3 + 1];
+            int c = mesh_wtc.faces[fidx * 3 + 2];
+
             if (!visible[a] || !visible[b] || !visible[c]) continue;
 
-            // Backface culling (chapter 8): front-facing = negative area.
-            int area = framebuffer.edge({ (float)screen_x[a], (float)screen_y[a] }, { (float)screen_x[b], (float)screen_y[b] }, { (float)screen_x[c], (float)screen_y[c] });
-            if (Backface_culling && area >= 0) { culled++;  continue; }
+            int area = framebuffer.edge({(float)screen_x[a], (float)screen_y[a]}, {(float)screen_x[b],(float)screen_y[b]}, {(float)screen_x[c], (float)screen_y[c]});
+
+            if (Backface_culling && area >= 0) {culled++; continue;}
 
             drawn++;
 
-            // Per-corner texture coordinates (fall back to (0,0) if a
-            // face somehow lacked a UV index).
-            int ua = mesh.face_uvs[fidx * 3 + 0];
-            int ub = mesh.face_uvs[fidx * 3 + 1];
-            int uc = mesh.face_uvs[fidx * 3 + 2];
-            vec2 uva = (ua >= 0) ? mesh.uvs[ua] : vec2_make(0, 0);
-            vec2 uvb = (ub >= 0) ? mesh.uvs[ub] : vec2_make(0, 0);
-            vec2 uvc = (uc >= 0) ? mesh.uvs[uc] : vec2_make(0, 0);
+            vec3 p0 = {(float)screen_x[a], (float)screen_y[a], screen_z[a]};
 
-            framebuffer.draw_triangle_textured(screen_x[a], screen_y[a], screen_z[a], inv_w[a], uva,
-                screen_x[b], screen_y[b], screen_z[b], inv_w[b], uvb,
-                screen_x[c], screen_y[c], screen_z[c], inv_w[c], uvc,
-                &tex);
+            vec3 p1 = {(float)screen_x[b], (float)screen_y[b], screen_z[b]};
+
+            vec3 p2 = {(float)screen_x[c], (float)screen_y[c], screen_z[c]};
+
+            uint32_t buildingColor = framebuffer.rgb(190, 195, 205);
+
+            framebuffer.drawTriangleZ(p0, p1, p2, buildingColor);
         }
             uint32_t cubeColor =framebuffer.rgb(100, 180, 240);
 
@@ -169,8 +204,8 @@ int main() {
             culled = 0;
     }
 
-        free(screen_x); free(screen_y);; free(visible);
-        mesh_free(&mesh);
+        free(screen_x); free(screen_y); free(visible); free(screen_z); free(inv_w);
+        mesh_free(&mesh_wtc);
         SDL_DestroyTexture(display.texture);
         SDL_DestroyRenderer(display.renderer);
         SDL_DestroyWindow(display.window);
