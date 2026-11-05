@@ -9,10 +9,11 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define WIDTH  800
-#define HEIGHT 600
+//#define WIDTH  800
+//#define HEIGHT 600
 
 constexpr float maxF{ std::numeric_limits<float>::max() };
+constexpr bool BILINEAR = true;
 
 Framebuffer::Framebuffer(int width, int height) :
     width(width),
@@ -279,98 +280,81 @@ void Framebuffer::drawTriangleGradient(vec3 p0, vec3 p1, vec3 p2)
     }
 }
 
-void Framebuffer::drawTriangleTextured(
-    int x0, int y0, float z0, float iw0, vec2 uv0,
-    int x1, int y1, float z1, float iw1, vec2 uv1,
-    int x2, int y2, float z2, float iw2, vec2 uv2,
-    const Texture* tex)
+
+void Framebuffer::drawTriangleTextured(int x0, int y0, float z0, float iw0, vec2 uv0, vec3 normal0, int x1, int y1, float z1, float iw1, vec2 uv1, vec3 normal1, int x2, int y2, float z2, float iw2, vec2 uv2, vec3 normal2, const Texture* tex)
 {
-    int area = edge(
-        { (float)x0, (float)y0 },
-        { (float)x1, (float)y1 },
-        { (float)x2, (float)y2 }
-    );
+    if (!tex || !tex->pixels || tex->width <= 0 || tex->height <= 0)
+        return;
 
-    if (area == 0) return;
+    float area = edge({ (float)x0, (float)y0, 0.0f },
+        { (float)x1, (float)y1, 0.0f },
+        { (float)x2, (float)y2, 0.0f });
+    if (area == 0.0f) return;
 
-    if (area < 0)
-    {
+    if (area < 0.0f) {
         int tx = x1, ty = y1;
         float tz = z1, tiw = iw1;
         vec2 tuv = uv1;
-
-        x1 = x2; y1 = y2; z1 = z2; iw1 = iw2; uv1 = uv2;
-        x2 = tx; y2 = ty; z2 = tz; iw2 = tiw; uv2 = tuv;
-
+        vec3 tn = normal1;
+        x1 = x2; y1 = y2; z1 = z2; iw1 = iw2; uv1 = uv2; normal1 = normal2;
+        x2 = tx; y2 = ty; z2 = tz; iw2 = tiw; uv2 = tuv; normal2 = tn;
         area = -area;
     }
 
-    BoundingBox box(
-        x0, y0,
-        x1, y1,
-        x2, y2,
-        width, height
-    );
+    const int minx = clampi((int)fminf((float)x0, fminf((float)x1, (float)x2)), 0, width - 1);
+    const int miny = clampi((int)fminf((float)y0, fminf((float)y1, (float)y2)), 0, height - 1);
+    const int maxx = clampi((int)fmaxf((float)x0, fmaxf((float)x1, (float)x2)), 0, width - 1);
+    const int maxy = clampi((int)fmaxf((float)y0, fmaxf((float)y1, (float)y2)), 0, height - 1);
+    if (minx > maxx || miny > maxy) return;
 
-    float inv_area = 1.0f / (float)area;
+    const float inv_area = 1.0f / area;
+    const float u0w = uv0.x * iw0, v0w = uv0.y * iw0;
+    const float u1w = uv1.x * iw1, v1w = uv1.y * iw1;
+    const float u2w = uv2.x * iw2, v2w = uv2.y * iw2;
+    const vec3 n0w = vec3_scale(normal0, iw0);
+    const vec3 n1w = vec3_scale(normal1, iw1);
+    const vec3 n2w = vec3_scale(normal2, iw2);
 
-    float u0w = uv0.x * iw0, v0w = uv0.y * iw0;
-    float u1w = uv1.x * iw1, v1w = uv1.y * iw1;
-    float u2w = uv2.x * iw2, v2w = uv2.y * iw2;
+    const vec3 lightDir = vec3_normalize(vec3_make(-0.45f, 0.75f, 0.50f));
+    const float ambient = 0.20f;
 
-    for (int y = box.minY; y <= box.maxY; y++)
-    {
-        for (int x = box.minX; x <= box.maxX; x++)
-        {
-            int e0 = edge(
-                { (float)x1, (float)y1 },
-                { (float)x2, (float)y2 },
-                { (float)x, (float)y }
-            );
+    for (int y = miny; y <= maxy; ++y) {
+        for (int x = minx; x <= maxx; ++x) {
+            const float px = (float)x + 0.5f;
+            const float py = (float)y + 0.5f;
+            const float e0 = edge({ (float)x1, (float)y1, 0.0f }, { (float)x2, (float)y2, 0.0f }, { px, py, 0.0f });
+            const float e1 = edge({ (float)x2, (float)y2, 0.0f }, { (float)x0, (float)y0, 0.0f }, { px, py, 0.0f });
+            const float e2 = edge({ (float)x0, (float)y0, 0.0f }, { (float)x1, (float)y1, 0.0f }, { px, py, 0.0f });
+            if (e0 < 0.0f || e1 < 0.0f || e2 < 0.0f) continue;
 
-            int e1 = edge(
-                { (float)x2, (float)y2 },
-                { (float)x0, (float)y0 },
-                { (float)x, (float)y }
-            );
-
-            int e2 = edge(
-                { (float)x0, (float)y0 },
-                { (float)x1, (float)y1 },
-                { (float)x, (float)y }
-            );
-
-            if ((e0 | e1 | e2) < 0) continue;
-
-            vec3 weights = barycentric(
-                e0 * inv_area,
-                e1 * inv_area,
-                e2 * inv_area
-            );
-
-            float z =
-                weights.x * z0 +
-                weights.y * z1 +
-                weights.z * z2;
-
-            int idx = getPixelIndex(x, y);
-
+            const float l0 = e0 * inv_area;
+            const float l1 = e1 * inv_area;
+            const float l2 = e2 * inv_area;
+            const float z = l0 * z0 + l1 * z1 + l2 * z2;
+            const int idx = y * width + x;
             if (z >= zbuffer[idx]) continue;
 
-#if PERSPECTIVE_CORRECT
-            float uw = weights.x * u0w + weights.y * u1w + weights.z * u2w;
-            float vw = weights.x * v0w + weights.y * v1w + weights.z * v2w;
-            float iw = weights.x * iw0 + weights.y * iw1 + weights.z * iw2;
+            const float iw = l0 * iw0 + l1 * iw1 + l2 * iw2;
+            if (fabsf(iw) < 1.0e-8f) continue;
+            const float u = (l0 * u0w + l1 * u1w + l2 * u2w) / iw;
+            const float v = (l0 * v0w + l1 * v1w + l2 * v2w) / iw;
 
-            float u = uw / iw;
-            float v = vw / iw;
-#else
-            float u = weights.x * uv0.x + weights.y * uv1.x + weights.z * uv2.x;
-            float v = weights.x * uv0.y + weights.y * uv1.y + weights.z * uv2.y;
-#endif
+            const vec3 normalW = vec3_add(
+                vec3_add(vec3_scale(n0w, l0), vec3_scale(n1w, l1)),
+                vec3_scale(n2w, l2));
+            const vec3 normal = vec3_normalize(vec3_scale(normalW, 1.0f / iw));
 
+            float diffuse = vec3_dot(normal, lightDir);
+            if (diffuse < 0.0f) diffuse = 0.0f;
+            const float intensity = ambient + (1.0f - ambient) * diffuse;
+
+            const uint32_t texel = BILINEAR ? texture_sample_bilinear(tex, u, v) : texture_sample(tex, u, v);
+            const uint32_t a = (texel >> 24) & 255u;
+            const uint32_t r = (uint32_t)fminf(255.0f, ((texel >> 16) & 255u) * intensity);
+            const uint32_t g = (uint32_t)fminf(255.0f, ((texel >> 8) & 255u) * intensity);
+            const uint32_t b = (uint32_t)fminf(255.0f, (texel & 255u) * intensity);
             zbuffer[idx] = z;
-            pixels[idx] = texture_sample(tex, u, v);
+            pixels[idx] = (a << 24) | (r << 16) | (g << 8) | b;
         }
     }
 }

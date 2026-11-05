@@ -107,6 +107,8 @@
     <ClInclude Include="ScreenVertex.hpp">
       <Filter>Fichiers d%27en-tête\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="clip.h">
+      <Filter>Fichiers d%27en-tête\Rendering</Filter>
     <ClInclude Include="obj.h">
       <Filter>Fichiers d%27en-tête\Assets</Filter>
     </ClInclude>
