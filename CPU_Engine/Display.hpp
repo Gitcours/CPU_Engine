@@ -26,6 +26,5 @@ public:
     SDL_Texture* texture = nullptr;
 
     bool open = false;
-private:
     
 };

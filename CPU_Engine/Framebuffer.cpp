@@ -15,19 +15,48 @@
 constexpr float maxF{ std::numeric_limits<float>::max() };
 constexpr bool BILINEAR = true;
 
-Framebuffer::Framebuffer(int width, int height) : 
+Framebuffer::Framebuffer(int width, int height) :
     width(width),
     height(height),
-    pixels(width* height, 0xFF000000), 
+    pixels(width* height, 0xFF000000),
     zbuffer(width* height, maxF)
-{}
+{
+}
 
-float Framebuffer::edge(vec3 p0, vec3 p1, vec3 p2) {
-    return ((p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x));
-};
+float Framebuffer::edge(vec3 p0, vec3 p1, vec3 p2) const
+{
+    vec2 a = {
+        p1.x - p0.x,
+        p1.y - p0.y
+    };
 
-static inline int clampi(int v, int lo, int hi) {
+    vec2 b = {
+        p2.x - p0.x,
+        p2.y - p0.y
+    };
+
+    return vec2_cross(a, b);
+}
+
+static inline int clampi(int v, int lo, int hi)
+{
     return v < lo ? lo : (v > hi ? hi : v);
+}
+
+vec3 Framebuffer::getBarycentric(vec3 p0, vec3 p1, vec3 p2, vec3 p) const
+{
+    float area = edge(p0, p1, p2);
+
+    return barycentric(
+        edge(p1, p2, p) / area,
+        edge(p2, p0, p) / area,
+        edge(p0, p1, p) / area
+    );
+}
+
+int Framebuffer::getPixelIndex(int x, int y) const
+{
+    return y * width + x;
 }
 
 void Framebuffer::clear(std::uint32_t color)
@@ -38,24 +67,22 @@ void Framebuffer::clear(std::uint32_t color)
     }
 }
 
-void Framebuffer::clearZbuffer()
+void Framebuffer::clearZBuffer()
 {
     std::fill(zbuffer.begin(), zbuffer.end(), maxF);
 }
 
 void Framebuffer::putPixel(int x, int y, std::uint32_t color)
 {
-    if (x < 0 || x >= width || y < 0 || y >= height) return;
 
-    const int index = y * width + x;
+    int index = getPixelIndex(x, y);
     pixels[index] = color;
 }
 
 void Framebuffer::putPixelDepth(int x, int y, float z, std::uint32_t color)
 {
-    if (x < 0 || x >= width || y < 0 || y >= height) return;
+    int index = getPixelIndex(x, y);
 
-    int index = y * width + x;
 
     if (z < zbuffer[index])
     {
@@ -96,6 +123,36 @@ void Framebuffer::drawLine(int x0, int y0, int x1, int y1, std::uint32_t color)
     }
 }
 
+void Framebuffer::drawCircle(int cx, int cy, int r, uint32_t color)
+{
+    int x = 0;
+    int y = r;
+    int d = 3 - 2 * r;
+
+    while (x <= y)
+    {
+        putPixel(cx + x, cy + y, color);
+        putPixel(cx - x, cy + y, color);
+        putPixel(cx + x, cy - y, color);
+        putPixel(cx - x, cy - y, color);
+        putPixel(cx + y, cy + x, color);
+        putPixel(cx - y, cy + x, color);
+        putPixel(cx + y, cy - x, color);
+        putPixel(cx - y, cy - x, color);
+
+        x++;
+
+        if (d > 0)
+        {
+            y--;
+            d += 4 * (x - y) + 10;
+        }
+        else
+        {
+            d += 4 * x + 6;
+        }
+    }
+}
 
 void Framebuffer::drawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, std::uint32_t color)
 {
@@ -114,21 +171,11 @@ void Framebuffer::drawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, s
     if (area == 0)
         return;
 
-    const int minX = std::max(
-        0, std::min({ x0, x1, x2 }));
+    BoundingBox box(x0, y0, x1, y1, x2, y2, width, height);
 
-    const int maxX = std::min(
-        width - 1, std::max({ x0, x1, x2 }));
-
-    const int minY = std::max(
-        0, std::min({ y0, y1, y2 }));
-
-    const int maxY = std::min(
-        height - 1, std::max({ y0, y1, y2 }));
-
-    for (int y = minY; y <= maxY; ++y)
+    for (int y = box.minY; y <= box.maxY; ++y)
     {
-        for (int x = minX; x <= maxX; ++x)
+        for (int x = box.minX; x <= box.maxX; ++x)
         {
             const long long e0 =
                 edge(x0, y0, x1, y1, x, y);
@@ -148,13 +195,11 @@ void Framebuffer::drawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, s
                 putPixel(x, y, color);
         }
     }
-
-
 }
 
 void Framebuffer::drawTriangleZ(vec3 p0, vec3 p1, vec3 p2, std::uint32_t color)
 {
-    float area = static_cast<float>(edge(p0, p1, p2)); //une autre facon de faire un cast, static_cast<float>(edge(p0, p1, p2)) aurait donner le meme résutlat mais finalement c'est plus jolie et moins long de juste faire (float)edge
+    float area = static_cast<float>(edge(p0, p1, p2));
 
     if (area == 0.0f) return;
 
@@ -165,11 +210,8 @@ void Framebuffer::drawTriangleZ(vec3 p0, vec3 p1, vec3 p2, std::uint32_t color)
     }
 
     int minX = std::max(0, (int)std::min({ p0.x, p1.x, p2.x }));
-
     int maxX = std::min(width - 1, (int)std::max({ p0.x, p1.x, p2.x }));
-
     int minY = std::max(0, (int)std::min({ p0.y, p1.y, p2.y }));
-
     int maxY = std::min(height - 1, (int)std::max({ p0.y, p1.y, p2.y }));
 
     for (int y = minY; y <= maxY; ++y)
@@ -182,26 +224,22 @@ void Framebuffer::drawTriangleZ(vec3 p0, vec3 p1, vec3 p2, std::uint32_t color)
                 0.0f
             };
 
-            float l0 = (float)edge(p1, p2, p) / area;
+            vec3 weights = getBarycentric(p0, p1, p2, p);
 
-            float l1 = (float)edge(p2, p0, p) / area;
-
-            float l2 = (float)edge(p0, p1, p) / area;
-
-            if (l0 >= 0.0f && l1 >= 0.0f && l2 >= 0.0f)
+            if (weights.x >= 0.0f &&
+                weights.y >= 0.0f &&
+                weights.z >= 0.0f)
             {
-                float z = l0 * p0.z + l1 * p1.z + l2 * p2.z;
+                float z =
+                    weights.x * p0.z +
+                    weights.y * p1.z +
+                    weights.z * p2.z;
 
                 putPixelDepth(x, y, z, color);
             }
         }
     }
 }
-
-uint32_t Framebuffer::rgb(uint8_t r, uint8_t g, uint8_t b) {
-    return ((uint32_t)0xFFu << 24) | ((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b;
-}
-
 
 void Framebuffer::drawTriangleGradient(vec3 p0, vec3 p1, vec3 p2)
 {
@@ -211,22 +249,30 @@ void Framebuffer::drawTriangleGradient(vec3 p0, vec3 p1, vec3 p2)
 
     if (area == 0) return;
 
-    int minX = p0.x < p1.x ? (p0.x < p2.x ? p0.x : p2.x) : (p1.x < p2.x ? p1.x : p2.x);
-    int minY = p0.y < p1.y ? (p0.y < p2.y ? p0.y : p2.y) : (p1.y < p2.y ? p1.y : p2.y);
-    int maxX = p0.x > p1.x ? (p0.x > p2.x ? p0.x : p2.x) : (p1.x > p2.x ? p1.x : p2.x);
-    int maxY = p0.y > p1.y ? (p0.y > p2.y ? p0.y : p2.y) : (p1.y > p2.y ? p1.y : p2.y);
+    BoundingBox box(
+        (int)p0.x, (int)p0.y,
+        (int)p1.x, (int)p1.y,
+        (int)p2.x, (int)p2.y,
+        width, height
+    );
 
+    for (int y = box.minY; y <= box.maxY; y++)
+    {
+        for (int x = box.minX; x <= box.maxX; x++)
+        {
+            vec3 weights = getBarycentric(
+                p0, p1, p2,
+                { (float)x, (float)y, 0.0f }
+            );
 
-    for (float y = minY; y < maxY; y++) {
-        for (float x = minX; x < maxX; x++) {
-            float e0 = (float)edge(p1, p2, { x,y }) / (float)area;
-            float e1 = (float)edge(p2, p0, { x,y }) / (float)area;
-            float e2 = (float)edge(p0, p1, { x,y }) / (float)area;
+            if (weights.x >= 0.0f &&
+                weights.y >= 0.0f &&
+                weights.z >= 0.0f)
+            {
+                uint8_t r = weights.x * 255;
+                uint8_t g = weights.y * 255;
+                uint8_t b = weights.z * 255;
 
-            if (e0 >= 0 && e1 >= 0 && e2 >= 0 ) {
-                uint8_t r = e0*255;
-                uint8_t g = e1*255;
-                uint8_t b = e2*255;
                 uint32_t color = rgb(r, g, b);
                 putPixel(x, y, color);
             }
@@ -234,32 +280,8 @@ void Framebuffer::drawTriangleGradient(vec3 p0, vec3 p1, vec3 p2)
     }
 }
 
-void Framebuffer::drawCircle(int cx, int cy, int r, uint32_t color) {
 
-        int x = 0;
-        int y = r;
-        int d = 3 - 2 * r;
-        while (x <= y) {
-            putPixel(cx + x, cy + y, color);
-            putPixel(cx - x, cy + y, color);
-            putPixel(cx + x, cy - y, color);
-            putPixel(cx - x, cy - y, color);
-            putPixel(cx + y, cy + x, color);
-            putPixel(cx - y, cy + x, color);
-            putPixel(cx + y, cy - x, color);
-            putPixel(cx - y, cy - x, color);
-            x++;
-            if (d > 0) {
-                y--;
-                d += 4 * (x - y) + 10;
-            }
-            else {
-                d += 4 * x + 6;
-            }
-        }
-}
-
-void Framebuffer::draw_triangle_textured(int x0, int y0, float z0, float iw0, vec2 uv0, vec3 normal0, int x1, int y1, float z1, float iw1, vec2 uv1, vec3 normal1, int x2, int y2, float z2, float iw2, vec2 uv2, vec3 normal2, const Texture* tex)
+void Framebuffer::drawTriangleTextured(int x0, int y0, float z0, float iw0, vec2 uv0, vec3 normal0, int x1, int y1, float z1, float iw1, vec2 uv1, vec3 normal1, int x2, int y2, float z2, float iw2, vec2 uv2, vec3 normal2, const Texture* tex)
 {
     if (!tex || !tex->pixels || tex->width <= 0 || tex->height <= 0)
         return;
@@ -331,14 +353,19 @@ void Framebuffer::draw_triangle_textured(int x0, int y0, float z0, float iw0, ve
             const uint32_t r = (uint32_t)fminf(255.0f, ((texel >> 16) & 255u) * intensity);
             const uint32_t g = (uint32_t)fminf(255.0f, ((texel >> 8) & 255u) * intensity);
             const uint32_t b = (uint32_t)fminf(255.0f, (texel & 255u) * intensity);
-
             zbuffer[idx] = z;
             pixels[idx] = (a << 24) | (r << 16) | (g << 8) | b;
         }
     }
 }
 
-
+uint32_t Framebuffer::rgb(uint8_t r, uint8_t g, uint8_t b)
+{
+    return ((uint32_t)0xFFu << 24)
+        | ((uint32_t)r << 16)
+        | ((uint32_t)g << 8)
+        | (uint32_t)b;
+}
 
 int Framebuffer::getWidth() const
 {

@@ -1,24 +1,23 @@
-#include <cstdint>
 #include <iostream>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_NO_HDR
 #define STBI_NO_LINEAR
 #define STBI_ONLY_PNG
 
-#include "obj.h"
-#include "Display.hpp"
-#include "mat.h"
-#include "clip.h"
+#include <vector>
+#include <cstdint>
+#include <cstdio>
 
-#define WIDTH  800
+#include "Display.hpp"
+#include "Camera.hpp"
+#include "ECS.h"
+#include "AssetManager.hpp"
+#include "Renderer.hpp"
+
+#define WIDTH 800
 #define HEIGHT 600
-#define PI 3.14159265358979323846f
+
 #ifndef WARP_ASSET_DIR
 #define WARP_ASSET_DIR "assets"
 #endif
@@ -65,44 +64,72 @@ static vec3 get_face_normal(const Mesh& mesh, int face_corner)
     return vec3_make(0.0f, 0.0f, 0.0f);
 }
 
-int main() {
+struct Position
+{
+    float x;
+    float y;
+    float z;
+};
 
-    Mesh mesh_vache;
-    if (!mesh_load(WARP_ASSET_DIR "/spot.obj", &mesh_vache)) return 1;
-    printf("loaded spot.obj: %d vertices, %d faces\n",
-        mesh_vache.vert_count, mesh_vache.face_count);
+struct Velocity
+{
+    float x;
+    float y;
+    float z;
+};
 
-    Texture tex_vache;
-    if (!texture_load(WARP_ASSET_DIR "/spot_texture.png", &tex_vache)) return 1;
-    printf("loaded spot_texture.png: %dx%d texels\n", tex_vache.width, tex_vache.height);
+struct Health
+{
+    int value;
+};
+
+int main()
+{
+    if (componentstorage.Has(0))
+    {
+        Position* position2 = (Position*)componentstorage.Get(0);
+        std::cout << "Cool" << "," << position2->x << std::endl;
+    }
+
+
+    AssetManager assets;
+
+    if (!assets.loadMesh("spot", WARP_ASSET_DIR "/spot.obj"))
+        return 1;
+
+    if (!assets.loadTexture("spot_texture", WARP_ASSET_DIR "/spot_texture.png"))
+        return 1;
+
+  Mesh* mesh = assets.getMesh("spot");
+    Texture* tex = assets.getTexture("spot_texture");
+
+
+    if (mesh == nullptr || tex == nullptr)
+        return 1;
 
     Framebuffer framebuffer(WIDTH, HEIGHT);
-    constexpr std::uint32_t BLACK = 0xFF000000;
+    Camera camera(WIDTH, HEIGHT);
 
-    uint32_t axis_color[3];
-    axis_color[0] = framebuffer.rgb(230, 80, 80);
-    axis_color[1] = framebuffer.rgb(80, 210, 90);
-    axis_color[2] = framebuffer.rgb(90, 140, 240);
-
-    const float aspect = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
-
-    const mat4 projection = mat4_perspective(radians(60.0f), aspect, 0.1f, 1000.0f);
-
-    const vec3 eye = vec3_make(4.0f, 0.6f, 2.4f);
-    const vec3 target = vec3_make(0.0f, 0.0f, 0.0f);
-    const vec3 up = vec3_make(0.0f, 1.0f, 0.0f);
-
-    const mat4 view = mat4_look_at(eye, target, up);
-
-    //bool* visible dégage, il est gerer par le clipping maintenant
+    //bool* visible dï¿½gage, il est gerer par le clipping maintenant
     vec4* clip_positions = (vec4*)malloc(mesh_vache.vert_count * sizeof(vec4));
+    camera.setPosition(vec3_make(0, 0, 5));
+    camera.setTarget(vec3_make(0, 0, 0));
+
+    mat4 projection = camera.getProjectionMatrix();
+    mat4 view = camera.getViewMatrix();
+
+    std::vector<ScreenVertex> screenVertices(mesh->verts.size());
 
     const Uint64 freq = SDL_GetPerformanceFrequency();
     const Uint64 start = SDL_GetPerformanceCounter();
+
     Uint64 last = start;
+
     double fps_accum = 0.0;
-    int    fps_count = 0;
-    char   title[160];
+    int fps_count = 0;
+
+    char title[160];
+
     int drawn = 0;
     int culled = 0;
 
@@ -118,8 +145,12 @@ int main() {
     {
         display.processEvents();
 
-        double seconds = static_cast<double>(SDL_GetPerformanceCounter() - start) / static_cast<double>(freq);
+        double seconds =
+            static_cast<double>(SDL_GetPerformanceCounter() - start)
+            / static_cast<double>(freq);
+
         float t = static_cast<float>(seconds);
+        mat4 model = mat4_rotation_y(t * 0.7f);
 
         mat4 animation = mat4_rotation_y(t * 0.7f);
         mat4 rotation = mat4_rotation_x(radians(0.0f));
@@ -239,9 +270,11 @@ int main() {
         //free(screen_x); free(screen_y); free(visible); free(screen_z); free(inv_w);
     free(clip_positions);
     mesh_free(&mesh_vache);
+
     SDL_DestroyTexture(display.texture);
     SDL_DestroyRenderer(display.renderer);
     SDL_DestroyWindow(display.window);
     SDL_Quit();
+
     return 0;
 }
