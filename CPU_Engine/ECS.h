@@ -4,6 +4,8 @@
 #include <functional>
 #include <typeindex>
 #include <unordered_map>
+#include <cassert>
+#include <utility>
 
 #include "Entity.h"
 #include "EntityManager.h"
@@ -45,7 +47,7 @@ public:
 
     void AddSystem(System system)
     {
-        systems.push_back(system);
+        systems.push_back(std::move(system));
     }
 
     void ExecuteSystems()
@@ -76,14 +78,9 @@ public:
     template<typename T>
     void AddComponent(const Entity& entity, const T& component)
     {
-        int componentID = GetComponentID<T>();
-
-        if (componentID == -1)
-            return;
-
         entityManager.AddComponent(
             entity,
-            componentID,
+            GetComponentID<T>(),
             const_cast<T*>(&component)
         );
     }
@@ -91,35 +88,29 @@ public:
     template<typename T>
     void RemoveComponent(const Entity& entity)
     {
-        int componentID = GetComponentID<T>();
-
-        if (componentID == -1)
-            return;
-
-        entityManager.RemoveComponent(entity, componentID);
+        entityManager.RemoveComponent(
+            entity,
+            GetComponentID<T>()
+        );
     }
 
     template<typename T>
     bool HasComponent(const Entity& entity)
     {
-        int componentID = GetComponentID<T>();
-
-        if (componentID == -1)
-            return false;
-
-        return entityManager.HasComponent(entity, componentID);
+        return entityManager.HasComponent(
+            entity,
+            GetComponentID<T>()
+        );
     }
 
     template<typename T>
     T* GetComponent(const Entity& entity)
     {
-        int componentID = GetComponentID<T>();
-
-        if (componentID == -1)
-            return nullptr;
-
         return static_cast<T*>(
-            entityManager.GetComponent(entity, componentID)
+            entityManager.GetComponent(
+                entity,
+                GetComponentID<T>()
+            )
             );
     }
 
@@ -136,9 +127,6 @@ public:
 
         for (int i = 0; i < numberOfComponents; i++)
         {
-            if (componentIDsArray[i] == -1)
-                return {};
-
             componentIDsToFetch.push_back(componentIDsArray[i]);
         }
 
@@ -154,8 +142,7 @@ private:
 
         auto it = componentIDs.find(type);
 
-        if (it == componentIDs.end())
-            return -1;
+        assert(it != componentIDs.end());
 
         return it->second;
     }

@@ -134,14 +134,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AssetManager.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Display.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EntityManager.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AssetManager.hpp" />
+    <ClInclude Include="BoundingBox.h" />
+    <ClInclude Include="Camera.hpp" />
     <ClInclude Include="componentstorage.h" />
     <ClInclude Include="Display.hpp" />
     <ClInclude Include="ECS.h" />
@@ -150,6 +156,8 @@
     <ClInclude Include="Framebuffer.hpp" />
     <ClInclude Include="mat.h" />
     <ClInclude Include="obj.h" />
+    <ClInclude Include="Renderer.hpp" />
+    <ClInclude Include="ScreenVertex.hpp" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="vec.h" />

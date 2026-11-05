@@ -1,48 +1,22 @@
-#include <cstdint>
 #include <iostream>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-
-#define STB_IMAGE_IMPLEMENTATION
-#define STBI_NO_HDR
-#define STBI_NO_LINEAR
-#define STBI_ONLY_PNG
-
-#include "obj.h"
+#include <vector>
+#include <cstdint>
+#include <cstdio>
 
 #include "Display.hpp"
-#include "mat.h"
+#include "Camera.hpp"
 #include "ECS.h"
+#include "AssetManager.hpp"
+#include "Renderer.hpp"
 
-#define WIDTH  800
+#define WIDTH 800
 #define HEIGHT 600
-#define PI 3.14159265358979323846f
+
 #ifndef WARP_ASSET_DIR
 #define WARP_ASSET_DIR "assets"
 #endif
 
 constexpr bool Backface_culling = true;
-
-static const vec3 CUBE_VERTS[8] = {
-    {-1, -1, -1}, { 1, -1, -1}, { 1,  1, -1}, {-1,  1, -1},
-    {-1, -1,  1}, { 1, -1,  1}, { 1,  1,  1}, {-1,  1,  1},
-};
-
-static const int CUBE_EDGES[12][3] = {
-    {0,1,0}, {3,2,0}, {7,6,0}, {4,5,0},
-    {0,3,1}, {1,2,1}, {5,6,1}, {4,7,1},
-    {0,4,2}, {1,5,2}, {2,6,2}, {3,7,2},
-};
-
-static const int CUBE_TRIANGLES[12][4] = {
-    {0, 1, 2, 2}, {0, 2, 3, 2}, {4, 6, 5, 2},
-    {4, 7, 6, 2}, {0, 3, 7, 0}, {0, 7, 4, 0},
-    {1, 5, 6, 0}, {1, 6, 2, 0}, {0, 4, 5, 1},
-    {0, 5, 1, 1}, {3, 2, 6, 1}, {3, 6, 7, 1}
-};
 
 struct Position
 {
@@ -63,159 +37,57 @@ struct Health
     int value;
 };
 
-
 int main()
 {
-    ECS ecs;
-
-    ecs.RegisterComponent<Position>();
-    ecs.RegisterComponent<Velocity>();
-
-    Entity player = ecs.CreateEntity();
-    Entity projectile = ecs.CreateEntity();
-
-    ecs.AddComponent(player, Position{ 0.0f, 0.0f, 0.0f });
-    ecs.AddComponent(player, Velocity{ 1.0f, 0.0f, 0.0f });
-
-    ecs.AddComponent(projectile, Position{ 5.0f, 0.0f, 0.0f });
-    ecs.AddComponent(projectile, Velocity{ 0.0f, 0.0f, 2.0f });
-
-    EntityManager& em = ecs.GetEntityManager();
-
-    std::cout << "===== ENTITY MANAGER TESTS =====" << std::endl;
-
-    std::cout << "Player has Position: "
-        << em.HasComponent(player, 0) << std::endl;
-
-    std::cout << "Player has Velocity: "
-        << em.HasComponent(player, 1) << std::endl;
-
-    std::cout << "Projectile has Position: "
-        << em.HasComponent(projectile, 0) << std::endl;
-
-    std::cout << "Player has Health: "
-        << em.HasComponent(player, 2) << std::endl;
-
-    Position* position = static_cast<Position*>(
-        em.GetComponent(player, 0)
-        );
-
-    if (position != nullptr)
-    {
-        std::cout << "Player X: " << position->x << std::endl;
-    }
-
-    std::cout << "\n===== SYSTEM TEST =====" << std::endl;
-
-    float deltaTime = 1.0f;
-
-    ecs.AddSystem([deltaTime](EntityManager& em)
-        {
-            std::vector<Entity> entities = em.FetchAllEntities({ 0, 1 });
-
-            for (const Entity& entity : entities)
-            {
-                Position* position = static_cast<Position*>(
-                    em.GetComponent(entity, 0)
-                    );
-
-                Velocity* velocity = static_cast<Velocity*>(
-                    em.GetComponent(entity, 1)
-                    );
-
-                if (position == nullptr || velocity == nullptr)
-                    continue;
-
-                position->x += velocity->x * deltaTime;
-                position->y += velocity->y * deltaTime;
-                position->z += velocity->z * deltaTime;
-            }
-        });
-
-    std::cout << "\nBefore system execution:" << std::endl;
-
-    Position* playerPosition = ecs.GetComponent<Position>(player);
-    Position* projectilePosition = ecs.GetComponent<Position>(projectile);
-
-    std::cout << "Player: "
-        << playerPosition->x << ", "
-        << playerPosition->y << ", "
-        << playerPosition->z << std::endl;
-
-    std::cout << "Projectile: "
-        << projectilePosition->x << ", "
-        << projectilePosition->y << ", "
-        << projectilePosition->z << std::endl;
-
-    ecs.ExecuteSystems();
-
-    std::cout << "\nAfter system execution:" << std::endl;
-
-    std::cout << "Player: "
-        << playerPosition->x << ", "
-        << playerPosition->y << ", "
-        << playerPosition->z << std::endl;
-
-    std::cout << "Projectile: "
-        << projectilePosition->x << ", "
-        << projectilePosition->y << ", "
-        << projectilePosition->z << std::endl;
-
-    return 0;
-}
-
-/*int main() {
     Position position;
     position.x = 1;
     position.y = 2;
 
     ComponentStorage<Position> componentstorage;
     componentstorage.Add(0, &position);
-    if (componentstorage.Has(0)) {
+
+    if (componentstorage.Has(0))
+    {
         Position* position2 = (Position*)componentstorage.Get(0);
-        std::cout << "Cool" << ","<< position2->x << std::endl;
+        std::cout << "Cool" << "," << position2->x << std::endl;
     }
-    
-    Mesh mesh;
-    if (!mesh_load(WARP_ASSET_DIR "/spot.obj", &mesh)) return 1;
-    printf("loaded spot.obj: %d vertices, %d faces\n",
-        mesh.vert_count, mesh.face_count);
 
-    Texture tex;
-    if (!texture_load(WARP_ASSET_DIR "/spot_texture.png", &tex)) return 1;
-    printf("loaded spot_texture.png: %dx%d texels\n", tex.width, tex.height);
+    AssetManager assets;
+
+    if (!assets.loadMesh("spot", WARP_ASSET_DIR "/spot.obj"))
+        return 1;
+
+    if (!assets.loadTexture("spot_texture", WARP_ASSET_DIR "/spot_texture.png"))
+        return 1;
+
+    Mesh* mesh = assets.getMesh("spot");
+    Texture* tex = assets.getTexture("spot_texture");
+
+    if (mesh == nullptr || tex == nullptr)
+        return 1;
+
     Framebuffer framebuffer(WIDTH, HEIGHT);
-    constexpr std::uint32_t BLACK = 0xFF000000;
 
-    uint32_t axis_color[3];
-    axis_color[0] = framebuffer.rgb(230, 80, 80);
-    axis_color[1] = framebuffer.rgb(80, 210, 90);
-    axis_color[2] = framebuffer.rgb(90, 140, 240);
+    Camera camera(WIDTH, HEIGHT);
 
-    const float aspect = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
+    camera.setPosition(vec3_make(0, 0, 5));
+    camera.setTarget(vec3_make(0, 0, 0));
 
-    const mat4 projection = mat4_perspective(radians(60.0f), aspect,
-        0.1f, 100.0f);
+    mat4 projection = camera.getProjectionMatrix();
+    mat4 view = camera.getViewMatrix();
 
-    const vec3 eye = vec3_make(0, 0, 5);
-    const vec3 target = vec3_make(0, 0, 0);
-    const vec3 up = vec3_make(0, 1, 0);
-    const mat4 view = mat4_look_at(eye, target, up);
-
-    int* screen_x = (int*)malloc(mesh.vert_count * sizeof(int));
-    int* screen_y = (int*)malloc(mesh.vert_count * sizeof(int));
-    float* screen_z = (float*)malloc(mesh.vert_count * sizeof(float));
-    float* inv_w = (float*)malloc(mesh.vert_count * sizeof(float));
-    bool* visible = (bool*)malloc(mesh.vert_count * sizeof(bool));
-
-
+    std::vector<ScreenVertex> screenVertices(mesh->verts.size());
 
     const Uint64 freq = SDL_GetPerformanceFrequency();
     const Uint64 start = SDL_GetPerformanceCounter();
+
     Uint64 last = start;
+
     double fps_accum = 0.0;
-    int    fps_count = 0;
-    char   title[160];
+    int fps_count = 0;
+
+    char title[160];
+
     int drawn = 0;
     int culled = 0;
 
@@ -231,81 +103,74 @@ int main()
     {
         display.processEvents();
 
-        double seconds = static_cast<double>(SDL_GetPerformanceCounter() - start) / static_cast<double>(freq);
+        double seconds =
+            static_cast<double>(SDL_GetPerformanceCounter() - start)
+            / static_cast<double>(freq);
+
         float t = static_cast<float>(seconds);
 
         mat4 model = mat4_rotation_y(t * 0.7f);
-        mat4 mvp = mat4_mul(projection, mat4_mul(view, model));
-        
-        for (int i = 0; i < mesh.vert_count; i++) {
-            vec4 clip = mat4_mul_vec4(mvp, vec4_from_point(mesh.verts[i]));
 
-            if (clip.w <= 0.0001f) { visible[i] = false; continue; }
-            float inv = 1.0f / clip.w;
-            screen_x[i] = (int)((clip.x * inv + 1.0f) * 0.5f * WIDTH);
-            screen_y[i] = (int)((1.0f - (clip.y * inv + 1.0f) * 0.5f) * HEIGHT);
-            screen_z[i] = clip.z * inv;
-            inv_w[i] = inv;
-            visible[i] = true;
-        }
+        mat4 mvp = mat4_mul(
+            projection,
+            mat4_mul(view, model));
+
+        transformVertices(
+            mesh->verts,
+            mvp,
+            screenVertices,
+            WIDTH,
+            HEIGHT);
 
         framebuffer.clear(framebuffer.rgb(16, 16, 24));
-        framebuffer.clearZbuffer();
+        framebuffer.clearZBuffer();
 
-        for (int fidx = 0; fidx < mesh.face_count; fidx++) {
-            int a = mesh.faces[fidx * 3 + 0];
-            int b = mesh.faces[fidx * 3 + 1];
-            int c = mesh.faces[fidx * 3 + 2];
-            if (!visible[a] || !visible[b] || !visible[c]) continue;
+        RenderStats stats = renderMesh(
+            framebuffer,
+            *mesh,
+            tex,
+            screenVertices,
+            Backface_culling);
 
-            // Backface culling (chapter 8): front-facing = negative area.
-            int area = framebuffer.edge({ (float)screen_x[a], (float)screen_y[a] }, { (float)screen_x[b], (float)screen_y[b] }, { (float)screen_x[c], (float)screen_y[c] });
-            if (Backface_culling && area >= 0) { culled++;  continue; }
+        drawn = stats.drawn;
+        culled = stats.culled;
 
-            drawn++;
+        display.present(framebuffer);
 
-            // Per-corner texture coordinates (fall back to (0,0) if a
-            // face somehow lacked a UV index).
-            int ua = mesh.face_uvs[fidx * 3 + 0];
-            int ub = mesh.face_uvs[fidx * 3 + 1];
-            int uc = mesh.face_uvs[fidx * 3 + 2];
-            vec2 uva = (ua >= 0) ? mesh.uvs[ua] : vec2_make(0, 0);
-            vec2 uvb = (ub >= 0) ? mesh.uvs[ub] : vec2_make(0, 0);
-            vec2 uvc = (uc >= 0) ? mesh.uvs[uc] : vec2_make(0, 0);
+        Uint64 now = SDL_GetPerformanceCounter();
 
-            framebuffer.draw_triangle_textured(screen_x[a], screen_y[a], screen_z[a], inv_w[a], uva,
-                screen_x[b], screen_y[b], screen_z[b], inv_w[b], uvb,
-                screen_x[c], screen_y[c], screen_z[c], inv_w[c], uvc,
-                &tex);
+        double dt =
+            static_cast<double>(now - last) / static_cast<double>(freq);
+
+        last = now;
+
+        fps_accum += dt;
+        fps_count++;
+
+        if (fps_accum >= 1.0)
+        {
+            double fps = static_cast<double>(fps_count) / fps_accum;
+
+            double ms =
+                1000.0 * fps_accum / static_cast<double>(fps_count);
+
+            snprintf(
+                title,
+                sizeof title,
+                "%.1f FPS | %.2f ms/frame | drew %d | culled %d",
+                fps, ms, drawn, culled);
+
+            SDL_SetWindowTitle(display.window, title);
+
+            fps_accum = 0.0;
+            fps_count = 0;
         }
-            uint32_t cubeColor =framebuffer.rgb(100, 180, 240);
-
-            display.present(framebuffer);
-
-            Uint64 now = SDL_GetPerformanceCounter();
-            double dt = static_cast<double>(now - last) / static_cast<double>(freq);
-            last = now;
-            fps_accum += dt;
-            fps_count += 1;
-
-            if (fps_accum >= 1.0) {
-                double fps = static_cast<double>(fps_count) / fps_accum;
-                double ms = 1000.0 * fps_accum / static_cast<double>(fps_count);
-                snprintf(title, sizeof title, "%.1f FPS | %.2f ms/frame | drew %d | culled %d", fps, ms, drawn, culled);
-                SDL_SetWindowTitle(display.window, title);
-                fps_accum = 0.0;
-                fps_count = 0;
-            }
-            drawn = 0;
-            culled = 0;
     }
 
-        free(screen_x); free(screen_y);; free(visible);
-        mesh_free(&mesh);
-        SDL_DestroyTexture(display.texture);
-        SDL_DestroyRenderer(display.renderer);
-        SDL_DestroyWindow(display.window);
-        SDL_Quit();
+    SDL_DestroyTexture(display.texture);
+    SDL_DestroyRenderer(display.renderer);
+    SDL_DestroyWindow(display.window);
+    SDL_Quit();
 
-        return 0;
-}*/
+    return 0;
+}
