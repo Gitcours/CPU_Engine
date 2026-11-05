@@ -1,4 +1,3 @@
-
 cmake_minimum_required(VERSION 3.20)
 
 project(CPU_Engine LANGUAGES CXX)
@@ -12,9 +11,14 @@ pkg_check_modules(SDL2 REQUIRED IMPORTED_TARGET sdl2)
 
 add_executable(CPU_Engine
         CPU_Engine/main.cpp
+
         CPU_Engine/Display.cpp
         CPU_Engine/Framebuffer.cpp
-        CPU_Engine/vec.h
+        CPU_Engine/Texture.cpp
+
+        CPU_Engine/Renderer.cpp
+        CPU_Engine/AssetManager.cpp
+        CPU_Engine/Camera.cpp
 )
 
 target_link_libraries(CPU_Engine PRIVATE
