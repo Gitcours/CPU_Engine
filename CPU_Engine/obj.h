@@ -1,75 +1,103 @@
 #pragma once
 
 #include "vec.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
 
-typedef struct {
-    vec3* verts;
-    int vert_count;
-    vec2* uvs;
-    int uv_count;
-    int* faces;
-    int face_count;
-    int* face_uvs;
-
-} Mesh;
-
-static void obj__parse_face_token(
-    const char** p,
-    int* vi,
-    int* ti
-)
+struct Mesh
 {
-    while (**p == ' ' || **p == '\t')
-        (*p)++;
+    std::vector<vec3> verts;
+    std::vector<vec2> uvs;
+    std::vector<int> faces;
+    std::vector<int> face_uvs;
+};
 
-    *vi = atoi(*p);
-    *ti = 0;
+inline bool mesh_load(const char* path, Mesh* mesh)
+{
+    std::ifstream file(path);
 
-    while (**p &&
-        **p != '/' &&
-        **p != ' ' &&
-        **p != '\t' &&
-        **p != '\n' &&
-        **p != '\r')
+    if (!file.is_open())
+        return false;
+
+    mesh->verts.clear();
+    mesh->uvs.clear();
+    mesh->faces.clear();
+    mesh->face_uvs.clear();
+
+    std::string line;
+
+    while (std::getline(file, line))
     {
-        (*p)++;
-    }
+        std::stringstream stream(line);
+        std::string type;
 
-    if (**p == '/')
-    {
-        (*p)++;
+        stream >> type;
 
-        if (**p != '/')
+        if (type == "v")
         {
-            *ti = atoi(*p);
+            vec3 vertex;
 
-            while (**p &&
-                **p != '/' &&
-                **p != ' ' &&
-                **p != '\t' &&
-                **p != '\n' &&
-                **p != '\r')
+            stream >> vertex.x >> vertex.y >> vertex.z;
+
+            mesh->verts.push_back(vertex);
+        }
+        else if (type == "vt")
+        {
+            vec2 uv;
+
+            stream >> uv.x >> uv.y;
+
+            mesh->uvs.push_back(uv);
+        }
+        else if (type == "f")
+        {
+            for (int i = 0; i < 3; i++)
             {
-                (*p)++;
+                std::string token;
+                stream >> token;
+
+                size_t firstSlash = token.find('/');
+                size_t secondSlash = token.find('/', firstSlash + 1);
+
+                int vertexIndex;
+                int uvIndex = -1;
+
+                if (firstSlash == std::string::npos)
+                {
+                    vertexIndex = std::stoi(token);
+                }
+                else
+                {
+                    vertexIndex = std::stoi(token.substr(0, firstSlash));
+
+                    if (secondSlash == std::string::npos)
+                    {
+                        if (firstSlash + 1 < token.size())
+                            uvIndex = std::stoi(token.substr(firstSlash + 1));
+                    }
+                    else if (secondSlash > firstSlash + 1)
+                    {
+                        uvIndex = std::stoi(
+                            token.substr(firstSlash + 1,
+                                secondSlash - firstSlash - 1));
+                    }
+                }
+
+                mesh->faces.push_back(vertexIndex - 1);
+
+                if (uvIndex > 0)
+                    mesh->face_uvs.push_back(uvIndex - 1);
+                else
+                    mesh->face_uvs.push_back(-1);
             }
         }
-
-        if (**p == '/')
-        {
-            (*p)++;
-
-            while (**p &&
-                **p != ' ' &&
-                **p != '\t' &&
-                **p != '\n' &&
-                **p != '\r')
-            {
-                (*p)++;
-            }
-        }
     }
+
+    file.close();
+
+    return true;
 }
 
 static void obj__add_triangle(
@@ -277,19 +305,12 @@ static int mesh_load(const char* path, Mesh* out)
     return 1;
 }
 
-static void mesh_free(Mesh* m)
+
+inline void mesh_free(Mesh* mesh)
 {
-    free(m->verts);
-    free(m->uvs);
-    free(m->faces);
-    free(m->face_uvs);
+    mesh->verts.clear();
+    mesh->uvs.clear();
+    mesh->faces.clear();
+    mesh->face_uvs.clear();
 
-    m->verts = NULL;
-    m->uvs = NULL;
-    m->faces = NULL;
-    m->face_uvs = NULL;
-
-    m->vert_count = 0;
-    m->uv_count = 0;
-    m->face_count = 0;
 }

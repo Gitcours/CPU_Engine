@@ -22,6 +22,21 @@
     <Filter Include="Fichiers d%27en-tête\Math">
       <UniqueIdentifier>{91131431-05ab-4ad2-bd7a-a8915818c4a1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Fichiers d%27en-tête\ECS">
+      <UniqueIdentifier>{47edcfec-a4c9-46dd-af54-e63ca97a5f3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\ECS">
+      <UniqueIdentifier>{dc2cb407-2a3c-47da-9116-f4f8521f5c19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Assets">
+      <UniqueIdentifier>{156c90c2-471e-4036-8192-da1acf4aead4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers d%27en-tête\Assets">
+      <UniqueIdentifier>{3a336c51-9e19-4af0-a9f7-9479938a0388}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Math">
+      <UniqueIdentifier>{7e02ca72-7b72-4e5d-9ef0-5632d53755b7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -35,6 +50,21 @@
     </ClCompile>
     <ClCompile Include="texture.cpp">
       <Filter>Fichiers sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>Fichiers sources\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="EntityManager.cpp">
+      <Filter>Fichiers sources\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetManager.cpp">
+      <Filter>Fichiers sources\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Fichiers sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Fichiers sources\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -50,14 +80,41 @@
     <ClInclude Include="vec.h">
       <Filter>Fichiers d%27en-tête\Math</Filter>
     </ClInclude>
-    <ClInclude Include="obj.h">
-      <Filter>Fichiers d%27en-tête\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="texture.h">
-      <Filter>Fichiers d%27en-tête\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="stb_image.h">
       <Filter>Fichiers d%27en-tête\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="componentstorage.h">
+      <Filter>Fichiers d%27en-tête\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Fichiers d%27en-tête\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="EntityManager.h">
+      <Filter>Fichiers d%27en-tête\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS.h">
+      <Filter>Fichiers d%27en-tête\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundingBox.h">
+      <Filter>Fichiers d%27en-tête\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.hpp">
+      <Filter>Fichiers d%27en-tête\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetManager.hpp">
+      <Filter>Fichiers d%27en-tête\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenVertex.hpp">
+      <Filter>Fichiers d%27en-tête\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="obj.h">
+      <Filter>Fichiers d%27en-tête\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.h">
+      <Filter>Fichiers d%27en-tête\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.hpp">
+      <Filter>Fichiers d%27en-tête\Math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,37 +1,62 @@
 #include "Camera.hpp"
 
-Camera::Camera(
-    const Vec3& position,
-    const Vec3& target,
-    const Vec3& up
-)
-    : position_(position),
-    target_(target),
-    up_(up)
+Camera::Camera(int width, int height)
 {
+    position = vec3_make(0, 0, 5);
+    target = vec3_make(0, 0, 0);
+    up = vec3_make(0, 1, 0);
+
+    fov = radians(60.0f);
+    aspectRatio = static_cast<float>(width) / height;
+    nearPlane = 0.1f;
+    farPlane = 100.0f;
 }
 
-void Camera::setPosition(const Vec3& position)
+void Camera::setPosition(vec3 position)
 {
-    position_ = position;
+    this->position = position;
 }
 
-void Camera::setTarget(const Vec3& target)
+void Camera::setTarget(vec3 target)
 {
-    target_ = target;
+    this->target = target;
 }
 
-const Vec3& Camera::getPosition() const
+void Camera::setUp(vec3 up)
 {
-    return position_;
+    this->up = up;
 }
 
-const Vec3& Camera::getTarget() const
+void Camera::setFov(float fov)
 {
-    return target_;
+    this->fov = radians(fov);
 }
 
-Mat4x4 Camera::getViewMatrix() const
+void Camera::setAspectRatio(float aspectRatio)
 {
-    return Mat4x4::LookAt(position_, target_, up_);
+    this->aspectRatio = aspectRatio;
+}
+
+void Camera::setNearPlane(float nearPlane)
+{
+    this->nearPlane = nearPlane;
+}
+
+void Camera::setFarPlane(float farPlane)
+{
+    this->farPlane = farPlane;
+}
+
+mat4 Camera::getViewMatrix() const
+{
+    return mat4_look_at(position, target, up);
+}
+
+mat4 Camera::getProjectionMatrix() const
+{
+    return mat4_perspective(
+        fov,
+        aspectRatio,
+        nearPlane,
+        farPlane);
 }
