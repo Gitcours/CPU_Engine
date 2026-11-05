@@ -44,19 +44,12 @@ void Framebuffer::clearZbuffer()
 
 void Framebuffer::putPixel(int x, int y, std::uint32_t color)
 {
-    if (x < 0 || x >= width || y < 0 || y >= height)
-    {
-        return;
-    }
-
     const int index = y * width + x;
     pixels[index] = color;
 }
 
 void Framebuffer::putPixelDepth(int x, int y, float z, std::uint32_t color)
 {
-    if (x < 0 || x >= width || y < 0 || y >= height)
-        return;
 
     int index = y * width + x;
 

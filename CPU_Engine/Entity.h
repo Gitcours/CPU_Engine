@@ -3,9 +3,15 @@
 class Entity
 {
 public:
-    Entity(int id);
+    explicit Entity(int id)
+        : id(id)
+    {
+    }
 
-    int getID() const;
+    int getID() const
+    {
+        return id;
+    }
 
 private:
     int id;

@@ -80,5 +80,8 @@
     <ClInclude Include="EntityManager.h">
       <Filter>Fichiers d%27en-tête\ECS</Filter>
     </ClInclude>
+    <ClInclude Include="ECS.h">
+      <Filter>Fichiers d%27en-tête\ECS</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

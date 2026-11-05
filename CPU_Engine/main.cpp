@@ -15,7 +15,7 @@
 
 #include "Display.hpp"
 #include "mat.h"
-#include "componentstorage.h"
+#include "ECS.h"
 
 #define WIDTH  800
 #define HEIGHT 600
@@ -46,11 +46,125 @@ static const int CUBE_TRIANGLES[12][4] = {
 
 struct Position
 {
-    int x;
-    int y;
-
+    float x;
+    float y;
+    float z;
 };
-int main() {
+
+struct Velocity
+{
+    float x;
+    float y;
+    float z;
+};
+
+struct Health
+{
+    int value;
+};
+
+
+int main()
+{
+    ECS ecs;
+
+    ecs.RegisterComponent<Position>();
+    ecs.RegisterComponent<Velocity>();
+
+    Entity player = ecs.CreateEntity();
+    Entity projectile = ecs.CreateEntity();
+
+    ecs.AddComponent(player, Position{ 0.0f, 0.0f, 0.0f });
+    ecs.AddComponent(player, Velocity{ 1.0f, 0.0f, 0.0f });
+
+    ecs.AddComponent(projectile, Position{ 5.0f, 0.0f, 0.0f });
+    ecs.AddComponent(projectile, Velocity{ 0.0f, 0.0f, 2.0f });
+
+    EntityManager& em = ecs.GetEntityManager();
+
+    std::cout << "===== ENTITY MANAGER TESTS =====" << std::endl;
+
+    std::cout << "Player has Position: "
+        << em.HasComponent(player, 0) << std::endl;
+
+    std::cout << "Player has Velocity: "
+        << em.HasComponent(player, 1) << std::endl;
+
+    std::cout << "Projectile has Position: "
+        << em.HasComponent(projectile, 0) << std::endl;
+
+    std::cout << "Player has Health: "
+        << em.HasComponent(player, 2) << std::endl;
+
+    Position* position = static_cast<Position*>(
+        em.GetComponent(player, 0)
+        );
+
+    if (position != nullptr)
+    {
+        std::cout << "Player X: " << position->x << std::endl;
+    }
+
+    std::cout << "\n===== SYSTEM TEST =====" << std::endl;
+
+    float deltaTime = 1.0f;
+
+    ecs.AddSystem([deltaTime](EntityManager& em)
+        {
+            std::vector<Entity> entities = em.FetchAllEntities({ 0, 1 });
+
+            for (const Entity& entity : entities)
+            {
+                Position* position = static_cast<Position*>(
+                    em.GetComponent(entity, 0)
+                    );
+
+                Velocity* velocity = static_cast<Velocity*>(
+                    em.GetComponent(entity, 1)
+                    );
+
+                if (position == nullptr || velocity == nullptr)
+                    continue;
+
+                position->x += velocity->x * deltaTime;
+                position->y += velocity->y * deltaTime;
+                position->z += velocity->z * deltaTime;
+            }
+        });
+
+    std::cout << "\nBefore system execution:" << std::endl;
+
+    Position* playerPosition = ecs.GetComponent<Position>(player);
+    Position* projectilePosition = ecs.GetComponent<Position>(projectile);
+
+    std::cout << "Player: "
+        << playerPosition->x << ", "
+        << playerPosition->y << ", "
+        << playerPosition->z << std::endl;
+
+    std::cout << "Projectile: "
+        << projectilePosition->x << ", "
+        << projectilePosition->y << ", "
+        << projectilePosition->z << std::endl;
+
+    ecs.ExecuteSystems();
+
+    std::cout << "\nAfter system execution:" << std::endl;
+
+    std::cout << "Player: "
+        << playerPosition->x << ", "
+        << playerPosition->y << ", "
+        << playerPosition->z << std::endl;
+
+    std::cout << "Projectile: "
+        << projectilePosition->x << ", "
+        << projectilePosition->y << ", "
+        << projectilePosition->z << std::endl;
+
+    return 0;
+}
+
+/*int main() {
     Position position;
     position.x = 1;
     position.y = 2;
@@ -194,4 +308,4 @@ int main() {
         SDL_Quit();
 
         return 0;
-}
+}*/
