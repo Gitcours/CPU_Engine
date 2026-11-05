@@ -59,6 +59,7 @@ void texture_free(Texture* texture)
     texture->height = 0;
 }
 
+
 uint32_t texture_sample(const Texture* texture, float u, float v)
 {
     u = u - std::floor(u);
