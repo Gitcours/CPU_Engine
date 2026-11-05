@@ -59,5 +59,8 @@
     <ClInclude Include="stb_image.h">
       <Filter>Fichiers d%27en-tête\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="clip.h">
+      <Filter>Fichiers d%27en-tête\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
