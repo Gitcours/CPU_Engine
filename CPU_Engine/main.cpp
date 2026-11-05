@@ -156,9 +156,13 @@ int main() {
             input[1].clip = clip_positions[b];
             input[2].clip = clip_positions[c];
 
-            input[0].uv = vec2_make(0, 0);
-            input[1].uv = vec2_make(0, 0);
-            input[2].uv = vec2_make(0, 0);
+            input[0].uv = get_face_uv(mesh_vache, fidx * 3 + 0);
+            input[1].uv = get_face_uv(mesh_vache, fidx * 3 + 1);
+            input[2].uv = get_face_uv(mesh_vache, fidx * 3 + 2);
+
+            input[0].normal = transform_normal(model, normalA);
+            input[1].normal = transform_normal(model, normalB);
+            input[2].normal = transform_normal(model, normalC);
 
             ClipVertex output[4];
 
@@ -195,9 +199,18 @@ int main() {
 
                 drawn++;
 
-                uint32_t buildingColor = framebuffer.rgb(190, 195, 205);
+                framebuffer.draw_triangle_textured(
+                    (int)p0.x, (int)p0.y, p0.z,
+                    iw0, v0.uv, v0.normal,
 
-                framebuffer.drawTriangleZ(p0, p1, p2, buildingColor);
+                    (int)p1.x, (int)p1.y, p1.z,
+                    iw1, v1.uv, v1.normal,
+
+                    (int)p2.x, (int)p2.y, p2.z,
+                    iw2, v2.uv, v2.normal,
+
+                    &tex_vache
+                );
             }
         }
 
@@ -224,11 +237,11 @@ int main() {
     }
 
         //free(screen_x); free(screen_y); free(visible); free(screen_z); free(inv_w);
-        mesh_free(&mesh_vache);
-        SDL_DestroyTexture(display.texture);
-        SDL_DestroyRenderer(display.renderer);
-        SDL_DestroyWindow(display.window);
-        SDL_Quit();
-
-        return 0;
+    free(clip_positions);
+    mesh_free(&mesh_vache);
+    SDL_DestroyTexture(display.texture);
+    SDL_DestroyRenderer(display.renderer);
+    SDL_DestroyWindow(display.window);
+    SDL_Quit();
+    return 0;
 }
