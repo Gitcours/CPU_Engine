@@ -51,7 +51,9 @@ RenderStats renderMesh(
         if (!screenVertices[a].visible ||
             !screenVertices[b].visible ||
             !screenVertices[c].visible)
+        {
             continue;
+        }
 
         int area = framebuffer.edge(
             { (float)screenVertices[a].x, (float)screenVertices[a].y },
@@ -74,24 +76,29 @@ RenderStats renderMesh(
         vec2 uvb = (ub >= 0) ? mesh.uvs[ub] : vec2_make(0, 0);
         vec2 uvc = (uc >= 0) ? mesh.uvs[uc] : vec2_make(0, 0);
 
+        vec3 normal = vec3_make(0.0f, 0.0f, 1.0f);
+
         framebuffer.drawTriangleTextured(
             screenVertices[a].x,
             screenVertices[a].y,
             screenVertices[a].z,
             screenVertices[a].invW,
             uva,
+            normal,
 
             screenVertices[b].x,
             screenVertices[b].y,
             screenVertices[b].z,
             screenVertices[b].invW,
             uvb,
+            normal,
 
             screenVertices[c].x,
             screenVertices[c].y,
             screenVertices[c].z,
             screenVertices[c].invW,
             uvc,
+            normal,
 
             texture);
     }

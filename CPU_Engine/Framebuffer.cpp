@@ -283,7 +283,7 @@ void Framebuffer::drawTriangleGradient(vec3 p0, vec3 p1, vec3 p2)
 
 void Framebuffer::drawTriangleTextured(int x0, int y0, float z0, float iw0, vec2 uv0, vec3 normal0, int x1, int y1, float z1, float iw1, vec2 uv1, vec3 normal1, int x2, int y2, float z2, float iw2, vec2 uv2, vec3 normal2, const Texture* tex)
 {
-    if (!tex || !tex->pixels || tex->width <= 0 || tex->height <= 0)
+    if (!tex || tex->pixels.empty() || tex->width <= 0 || tex->height <= 0)
         return;
 
     float area = edge({ (float)x0, (float)y0, 0.0f },
